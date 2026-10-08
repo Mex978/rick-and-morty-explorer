@@ -6,7 +6,7 @@ import { ThemeToggle } from '.';
 describe('ThemeToggle', () => {
   beforeEach(() => {
     delete document.documentElement.dataset.theme;
-    localStorage.clear();
+    document.cookie = 'theme=; max-age=0';
     vi.stubGlobal('matchMedia', () => ({ matches: false }));
     delete (document as { startViewTransition?: unknown }).startViewTransition;
   });
@@ -17,7 +17,7 @@ describe('ThemeToggle', () => {
     screen.getByRole('button', { name: 'Alternar tema' }).click();
 
     expect(document.documentElement.dataset.theme).toBe('dark');
-    expect(localStorage.getItem('theme')).toBe('dark');
+    expect(document.cookie).toContain('theme=dark');
   });
 
   it('reveals the new theme in a circle from the click when view transitions are supported', async () => {
