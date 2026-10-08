@@ -35,12 +35,17 @@ export function ThemeToggle() {
     const { clientX: x, clientY: y } = event;
     const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
 
-    void document.startViewTransition(apply).ready.then(() => {
-      root.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-        { duration: 500, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' },
-      );
-    });
+    document
+      .startViewTransition(apply)
+      .ready.then(() => {
+        root.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+          { duration: 500, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' },
+        );
+      })
+      .catch(() => {
+        // The browser skips the transition in a hidden tab or when another one is running; the theme is applied anyway.
+      });
   }
 
   return (
