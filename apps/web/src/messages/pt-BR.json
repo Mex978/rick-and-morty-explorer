@@ -19,7 +19,12 @@
     "back": "Voltar para os episódios",
     "airDate": "Exibido em {date}",
     "characters": "Personagens",
-    "characterCount": "{count, plural, one {# personagem} other {# personagens}}"
+    "characterCount": "{count, plural, one {# personagem} other {# personagens}}",
+    "search": {
+      "label": "Filtrar personagens",
+      "placeholder": "Buscar pelo nome do personagem"
+    },
+    "empty": "Nenhum personagem encontrado para “{query}”."
   },
   "character": {
     "status": {

@@ -39,6 +39,13 @@ export const SectionTitle = styled.h2`
   color: ${({ theme }) => theme.colors.muted};
 `;
 
+export const Empty = styled.p`
+  margin: 0;
+  padding: 48px 0;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.muted};
+`;
+
 export const Grid = styled.ul`
   list-style: none;
   margin: 0;
