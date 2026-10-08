@@ -6,6 +6,11 @@ export const theme = {
     text: '#1c1f24',
     muted: '#5f6670',
     primary: '#0b7a75',
+    status: {
+      alive: '#2e9e5b',
+      dead: '#d0453b',
+      unknown: '#8a929c',
+    },
   },
   radius: '10px',
   maxWidth: '1100px',

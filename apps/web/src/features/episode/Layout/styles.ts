@@ -34,7 +34,7 @@ export const Grid = styled.ul`
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
 `;
 
@@ -63,7 +63,7 @@ export const Name = styled.strong`
   font-size: 1rem;
 `;
 
-export const Badge = styled.span`
+export const Badge = styled.span<{ $status: 'alive' | 'dead' | 'unknown' }>`
   display: inline-block;
   margin-bottom: 8px;
   padding: 2px 8px;
@@ -71,7 +71,7 @@ export const Badge = styled.span`
   font-size: 0.75rem;
   font-weight: 600;
   color: #fff;
-  background: ${({ theme }) => theme.colors.muted};
+  background: ${({ $status, theme }) => theme.colors.status[$status]};
 `;
 
 export const Detail = styled.dl`

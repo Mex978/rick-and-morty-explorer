@@ -50,13 +50,14 @@ export function EpisodeLayout({ episode }: EpisodeProps) {
 
 function CharacterCard({ character }: { character: Character }) {
   const t = useTranslations('character');
+  const status = toStatusKey(character.status);
 
   return (
     <Card>
       <Image src={character.image} alt={character.name} width={300} height={300} />
       <CardBody>
         <Name>{character.name}</Name>
-        <Badge>{t(`status.${toStatusKey(character.status)}`)}</Badge>
+        <Badge $status={status}>{t(`status.${status}`)}</Badge>
         <Detail>
           <dt>{t('species')}</dt>
           <dd>{character.species}</dd>
