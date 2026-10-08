@@ -8,7 +8,7 @@
     "start": "node dist/main",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "dependencies": {
     "@cacheable/memory": "^2.2.0",
@@ -48,6 +48,19 @@
       "<rootDir>/src",
       "<rootDir>/test"
     ],
-    "testRegex": ".*\\.spec\\.ts$"
+    "testRegex": ".*\\.spec\\.ts$",
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/main.ts",
+      "!src/**/*.types.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 95,
+        "branches": 80,
+        "functions": 95,
+        "lines": 95
+      }
+    }
   }
 }
