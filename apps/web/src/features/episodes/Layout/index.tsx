@@ -4,6 +4,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useRef, useTransition } from 'react';
 
 import { Pagination } from '@/components/Pagination';
+import { SearchField } from '@/components/SearchField';
 import { Link, useRouter } from '@/i18n/navigation';
 import { parseAirDate } from '@/lib/air-date';
 
@@ -16,8 +17,6 @@ import {
   Meta,
   Name,
   Results,
-  SearchForm,
-  SearchInput,
   Season,
   SeasonTitle,
   Title,
@@ -33,24 +32,18 @@ export function EpisodesLayout({ query, seasons, pagination }: EpisodesProps) {
   return (
     <>
       <Title>{t('title')}</Title>
-      <SearchForm
-        role="search"
+      <SearchField
+        ref={inputRef}
+        name="q"
+        label={t('search.label')}
+        placeholder={t('search.placeholder')}
+        defaultValue={query}
+        onChange={(event) => search(event.target.value, { immediate: event.target.value === '' })}
         onSubmit={(event) => {
           event.preventDefault();
           search(new FormData(event.currentTarget).get('q') as string, { immediate: true });
         }}
-      >
-        <SearchInput
-          ref={inputRef}
-          type="search"
-          name="q"
-          defaultValue={query}
-          placeholder={t('search.placeholder')}
-          aria-label={t('search.label')}
-          autoComplete="off"
-          onChange={(event) => search(event.target.value, { immediate: event.target.value === '' })}
-        />
-      </SearchForm>
+      />
       <Results aria-busy={isPending} $pending={isPending}>
         {seasons.length === 0 && (
           <Empty>
