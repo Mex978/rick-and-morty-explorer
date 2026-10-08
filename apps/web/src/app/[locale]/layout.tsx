@@ -18,7 +18,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'app' });
 
-  return { title: t('title') };
+  return {
+    metadataBase: new URL(process.env.SITE_URL ?? 'http://localhost:3000'),
+    title: { default: t('title'), template: `%s · ${t('title')}` },
+    description: t('description'),
+  };
 }
 
 export default async function LocaleLayout({ children, params }: Props) {

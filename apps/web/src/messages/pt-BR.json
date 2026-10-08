@@ -3,6 +3,7 @@
     "title": "Rick and Morty Explorer",
     "language": "Idioma",
     "theme": "Alternar tema",
+    "description": "Explore os episódios de Rick and Morty e os personagens de cada um.",
     "locales": {
       "pt-BR": "Português (Brasil)",
       "en": "English"
