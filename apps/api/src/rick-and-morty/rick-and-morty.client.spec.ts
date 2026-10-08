@@ -67,9 +67,15 @@ describe('RickAndMortyClient', () => {
     await expect(client.getEpisode(1)).rejects.toBeInstanceOf(GatewayTimeoutException);
   });
 
-  it('throws BadGatewayException on any other upstream failure', async () => {
+  it('throws BadGatewayException on any other upstream failure, keeping the cause', async () => {
     nock(baseUrl).get('/episode/1').reply(500);
 
-    await expect(client.getEpisode(1)).rejects.toBeInstanceOf(BadGatewayException);
+    const error = await client.getEpisode(1).then(
+      () => new Error('expected a rejection'),
+      (e: unknown) => e as Error,
+    );
+
+    expect(error).toBeInstanceOf(BadGatewayException);
+    expect(error.cause).toMatchObject({ response: { status: 500 } });
   });
 });
