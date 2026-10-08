@@ -19,7 +19,12 @@
     "back": "Back to episodes",
     "airDate": "Aired on {date}",
     "characters": "Characters",
-    "characterCount": "{count, plural, one {# character} other {# characters}}"
+    "characterCount": "{count, plural, one {# character} other {# characters}}",
+    "search": {
+      "label": "Filter characters",
+      "placeholder": "Search by character name"
+    },
+    "empty": "No character found for “{query}”."
   },
   "character": {
     "status": {

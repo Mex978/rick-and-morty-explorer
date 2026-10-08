@@ -3,7 +3,9 @@
 import type { Character } from '@rma/types';
 import Image from 'next/image';
 import { useFormatter, useTranslations } from 'next-intl';
+import { useState } from 'react';
 
+import { SearchField } from '@/components/SearchField';
 import { Link } from '@/i18n/navigation';
 import { parseAirDate } from '@/lib/air-date';
 
@@ -15,6 +17,7 @@ import {
   CardBody,
   Code,
   Detail,
+  Empty,
   Grid,
   Meta,
   Name,
@@ -25,6 +28,8 @@ import {
 export function EpisodeLayout({ episode }: EpisodeProps) {
   const t = useTranslations('episode');
   const format = useFormatter();
+  const [query, setQuery] = useState('');
+  const characters = filterByName(episode.characters, query);
 
   return (
     <>
@@ -39,13 +44,25 @@ export function EpisodeLayout({ episode }: EpisodeProps) {
         {t('characterCount', { count: episode.characterCount })}
       </Meta>
       <SectionTitle>{t('characters')}</SectionTitle>
+      <SearchField
+        label={t('search.label')}
+        placeholder={t('search.placeholder')}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+      />
+      {characters.length === 0 && <Empty>{t('empty', { query })}</Empty>}
       <Grid>
-        {episode.characters.map((character, index) => (
+        {characters.map((character, index) => (
           <CharacterCard key={character.id} character={character} priority={index < 4} />
         ))}
       </Grid>
     </>
   );
+}
+
+function filterByName(characters: Character[], query: string): Character[] {
+  const needle = query.trim().toLocaleLowerCase();
+  return needle ? characters.filter((character) => character.name.toLocaleLowerCase().includes(needle)) : characters;
 }
 
 function CharacterCard({ character, priority }: { character: Character; priority: boolean }) {
