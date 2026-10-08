@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "name": "Rick Sanchez",
+    "status": "Alive",
+    "species": "Human",
+    "type": "",
+    "gender": "Male",
+    "origin": { "name": "Earth (C-137)", "url": "https://rickandmortyapi.com/api/location/1" },
+    "location": { "name": "Citadel of Ricks", "url": "https://rickandmortyapi.com/api/location/3" },
+    "image": "https://rickandmortyapi.com/api/character/avatar/1.jpeg",
+    "episode": ["https://rickandmortyapi.com/api/episode/1"],
+    "url": "https://rickandmortyapi.com/api/character/1",
+    "created": "2017-11-04T18:48:46.250Z"
+  },
+  {
+    "id": 2,
+    "name": "Morty Smith",
+    "status": "Alive",
+    "species": "Human",
+    "type": "",
+    "gender": "Male",
+    "origin": { "name": "unknown", "url": "" },
+    "location": { "name": "Citadel of Ricks", "url": "https://rickandmortyapi.com/api/location/3" },
+    "image": "https://rickandmortyapi.com/api/character/avatar/2.jpeg",
+    "episode": ["https://rickandmortyapi.com/api/episode/1"],
+    "url": "https://rickandmortyapi.com/api/character/2",
+    "created": "2017-11-04T18:50:21.651Z"
+  },
+  {
+    "id": 35,
+    "name": "Bepisian",
+    "status": "Alive",
+    "species": "Alien",
+    "type": "Bepisian",
+    "gender": "unknown",
+    "origin": { "name": "Bepis 9", "url": "https://rickandmortyapi.com/api/location/11" },
+    "location": { "name": "Bepis 9", "url": "https://rickandmortyapi.com/api/location/11" },
+    "image": "https://rickandmortyapi.com/api/character/avatar/35.jpeg",
+    "episode": ["https://rickandmortyapi.com/api/episode/1"],
+    "url": "https://rickandmortyapi.com/api/character/35",
+    "created": "2017-11-05T09:27:38.491Z"
+  },
+  {
+    "id": 38,
+    "name": "Beth Smith",
+    "status": "Alive",
+    "species": "Human",
+    "type": "",
+    "gender": "Female",
+    "origin": { "name": "Earth (C-137)", "url": "https://rickandmortyapi.com/api/location/1" },
+    "location": { "name": "Earth (C-137)", "url": "https://rickandmortyapi.com/api/location/1" },
+    "image": "https://rickandmortyapi.com/api/character/avatar/38.jpeg",
+    "episode": ["https://rickandmortyapi.com/api/episode/1"],
+    "url": "https://rickandmortyapi.com/api/character/38",
+    "created": "2017-11-05T09:48:44.230Z"
+  }
+]
