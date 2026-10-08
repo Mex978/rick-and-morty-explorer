@@ -20,6 +20,12 @@ export const Brand = styled.span`
   color: ${({ theme }) => theme.colors.primary};
 `;
 
+export const Actions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
 export const Locales = styled.nav`
   display: flex;
   gap: 4px;

@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/Header';
 import { routing } from '@/i18n/routing';
 import { StyledComponentsRegistry } from '@/lib/registry';
+import { themeScript } from '@/styles/theme';
 
 interface Props {
   children: React.ReactNode;
@@ -30,7 +31,10 @@ export default async function LocaleLayout({ children, params }: Props) {
   setRequestLocale(locale);
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <StyledComponentsRegistry>
           <NextIntlClientProvider>

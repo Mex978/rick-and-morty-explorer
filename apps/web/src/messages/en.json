@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Rick and Morty Explorer",
-    "language": "Language"
+    "language": "Language",
+    "theme": "Toggle theme"
   },
   "episodes": {
     "title": "Episodes",
