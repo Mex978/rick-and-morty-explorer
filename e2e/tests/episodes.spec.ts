@@ -19,13 +19,19 @@ test('navigates to the next page', async ({ page }) => {
   await expect(page.getByRole('link', { name: /Pilot/ })).toHaveCount(0);
 });
 
-test('searches episodes by name', async ({ page }) => {
+test('searches while typing and restores the list when cleared', async ({ page }) => {
   await page.goto('/pt-BR');
+  const search = page.getByRole('searchbox');
 
-  await page.getByRole('searchbox').fill('pilot');
-  await page.getByRole('button', { name: 'Buscar' }).click();
+  await search.fill('pilot');
 
   await expect(page).toHaveURL(/q=pilot$/);
   await expect(page.getByRole('link', { name: /Pilot/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Lawnmower Dog/ })).toHaveCount(0);
+  await expect(search).toBeFocused();
+
+  await search.fill('');
+
+  await expect(page).toHaveURL(/\/pt-BR$/);
+  await expect(page.getByRole('link', { name: /Lawnmower Dog/ })).toBeVisible();
 });
