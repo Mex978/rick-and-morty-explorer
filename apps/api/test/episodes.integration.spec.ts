@@ -68,6 +68,16 @@ describe('GET /api/v1/episodes', () => {
     },
   );
 
+  it('does not mark error responses as cacheable', async () => {
+    nock(upstream).get('/episode/999').reply(404, { error: 'Episode not found' });
+
+    const badRequest = await request(app.getHttpServer()).get('/api/v1/episodes?page=abc').expect(400);
+    const notFound = await request(app.getHttpServer()).get('/api/v1/episodes/999').expect(404);
+
+    expect(badRequest.headers['cache-control']).toBeUndefined();
+    expect(notFound.headers['cache-control']).toBeUndefined();
+  });
+
   it('returns the episode with characters sorted by name', async () => {
     nock(upstream).get('/episode/1').reply(200, episode);
     nock(upstream).get('/character/1,2,35,38').reply(200, characters);
