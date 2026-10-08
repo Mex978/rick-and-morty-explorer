@@ -61,9 +61,12 @@ describe('GET /api/v1/episodes', () => {
     });
   });
 
-  it('returns 400 when page is not a number', async () => {
-    await request(app.getHttpServer()).get('/api/v1/episodes?page=abc').expect(400);
-  });
+  it.each(['page=abc', 'page=0', 'page=-1', 'page=1.5', 'name=a&name=b', `name=${'x'.repeat(101)}`])(
+    'returns 400 for the invalid query %s',
+    async (query) => {
+      await request(app.getHttpServer()).get(`/api/v1/episodes?${query}`).expect(400);
+    },
+  );
 
   it('returns the episode with characters sorted by name', async () => {
     nock(upstream).get('/episode/1').reply(200, episode);
