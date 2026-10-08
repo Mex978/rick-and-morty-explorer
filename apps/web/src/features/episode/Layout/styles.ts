@@ -8,15 +8,21 @@ export const BackLink = styled.span`
 `;
 
 export const Code = styled.span`
-  display: block;
-  font-size: 0.9rem;
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  font-size: 0.8rem;
   font-weight: 600;
+  letter-spacing: 0.04em;
   color: ${({ theme }) => theme.colors.primary};
 `;
 
 export const Title = styled.h1`
-  margin: 4px 0 8px;
-  font-size: 1.75rem;
+  margin: 12px 0 8px;
+  font-size: 2rem;
+  letter-spacing: -0.02em;
 `;
 
 export const Meta = styled.p`
@@ -26,7 +32,11 @@ export const Meta = styled.p`
 
 export const SectionTitle = styled.h2`
   margin: 0 0 16px;
-  font-size: 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.muted};
 `;
 
 export const Grid = styled.ul`
@@ -35,7 +45,7 @@ export const Grid = styled.ul`
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
+  gap: 16px;
 `;
 
 export const Card = styled.li`
@@ -43,6 +53,12 @@ export const Card = styled.li`
   background: ${({ theme }) => theme.colors.surface};
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius};
+  transition: transform 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
+  }
 
   img {
     display: block;
@@ -61,11 +77,12 @@ export const Name = styled.strong`
   display: block;
   margin-bottom: 8px;
   font-size: 1rem;
+  line-height: 1.3;
 `;
 
 export const Badge = styled.span<{ $status: 'alive' | 'dead' | 'unknown' }>`
   display: inline-block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 0.75rem;

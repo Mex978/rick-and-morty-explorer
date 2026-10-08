@@ -1,6 +1,30 @@
 import { createGlobalStyle } from 'styled-components';
 
+import { palettes } from './theme';
+
+const variables = (palette: typeof palettes.light) =>
+  Object.entries(palette)
+    .map(([name, value]) => `--color-${name}: ${value};`)
+    .join('\n');
+
+const darkTheme = `color-scheme: dark;\n${variables(palettes.dark)}`;
+
 export const GlobalStyle = createGlobalStyle`
+  :root {
+    color-scheme: light;
+    ${variables(palettes.light)}
+  }
+
+  :root[data-theme='dark'] {
+    ${darkTheme}
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      ${darkTheme}
+    }
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
   }
@@ -11,6 +35,12 @@ export const GlobalStyle = createGlobalStyle`
     color: ${({ theme }) => theme.colors.text};
     background: ${({ theme }) => theme.colors.background};
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  :focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 
   a {
