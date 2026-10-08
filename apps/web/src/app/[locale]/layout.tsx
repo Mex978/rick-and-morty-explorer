@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getTranslations } from 'next-intl/server';
 
 import { Header } from '@/components/Header';
 import { routing } from '@/i18n/routing';
@@ -12,10 +12,6 @@ import { isThemeName, THEME_COOKIE } from '@/styles/theme';
 interface Props {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
-}
-
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -28,8 +24,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-
-  setRequestLocale(locale);
 
   const savedTheme = (await cookies()).get(THEME_COOKIE)?.value;
 
