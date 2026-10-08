@@ -19,8 +19,11 @@ async function get<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function getEpisodes(page: number): Promise<Paginated<Episode>> {
-  return get(`/episodes?page=${page}`);
+export function getEpisodes(page: number, query = ''): Promise<Paginated<Episode>> {
+  const params = new URLSearchParams({ page: String(page) });
+  if (query) params.set('name', query);
+
+  return get(`/episodes?${params}`);
 }
 
 export function getEpisode(id: number): Promise<EpisodeDetail> {

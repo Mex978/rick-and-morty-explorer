@@ -7,15 +7,44 @@ import { Link } from '@/i18n/navigation';
 import { parseAirDate } from '@/lib/air-date';
 
 import type { EpisodesProps } from '../data';
-import { Card, Code, Grid, Meta, Name, Season, SeasonTitle, Title } from './styles';
+import {
+  Card,
+  Code,
+  Empty,
+  Grid,
+  Meta,
+  Name,
+  SearchButton,
+  SearchForm,
+  SearchInput,
+  Season,
+  SeasonTitle,
+  Title,
+} from './styles';
 
-export function EpisodesLayout({ seasons, pagination }: EpisodesProps) {
+export function EpisodesLayout({ query, seasons, pagination }: EpisodesProps) {
   const t = useTranslations('episodes');
   const format = useFormatter();
 
   return (
     <>
       <Title>{t('title')}</Title>
+      <SearchForm role="search">
+        <SearchInput
+          type="search"
+          name="q"
+          defaultValue={query}
+          placeholder={t('search.placeholder')}
+          aria-label={t('search.label')}
+          autoComplete="off"
+        />
+        <SearchButton type="submit">{t('search.submit')}</SearchButton>
+      </SearchForm>
+      {seasons.length === 0 && (
+        <Empty>
+          {t('empty', { query })} <Link href="/">{t('search.clear')}</Link>
+        </Empty>
+      )}
       {seasons.map(({ season, episodes }) => (
         <Season key={season} aria-labelledby={`season-${season}`}>
           <SeasonTitle id={`season-${season}`}>{t('season', { number: season })}</SeasonTitle>
@@ -33,7 +62,7 @@ export function EpisodesLayout({ seasons, pagination }: EpisodesProps) {
           </Grid>
         </Season>
       ))}
-      <Pagination {...pagination} />
+      {seasons.length > 0 && <Pagination {...pagination} />}
     </>
   );
 }

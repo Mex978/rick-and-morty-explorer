@@ -6,7 +6,14 @@
   "episodes": {
     "title": "Episódios",
     "season": "Temporada {number}",
-    "characterCount": "{count, plural, one {# personagem} other {# personagens}}"
+    "characterCount": "{count, plural, one {# personagem} other {# personagens}}",
+    "search": {
+      "label": "Buscar episódio",
+      "placeholder": "Buscar pelo nome do episódio",
+      "submit": "Buscar",
+      "clear": "Limpar busca"
+    },
+    "empty": "Nenhum episódio encontrado para “{query}”."
   },
   "episode": {
     "back": "Voltar para os episódios",
