@@ -79,6 +79,8 @@ Successful responses carry `Cache-Control: public, max-age=<CACHE_TTL_SECONDS>`;
 - `apps/web`: component tests for both layouts (including search and the character filter), the header, the pagination and the theme toggle, tests for the smart components with the API client mocked, the API client itself with `fetch` stubbed (one test in `features/episode` deliberately goes through the real client as an integration check), and key and ICU argument parity between locales.
 - `e2e`: eight Playwright tests against the real API covering the list, pagination, search, the sorted character list, the character filter, the language switch and the theme switch. The CI job is blocking, with two retries to absorb public API hiccups; the Playwright report is uploaded on failure.
 
+`pnpm test` also collects coverage and fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds apply to everything except the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by the Playwright suite instead.
+
 ```bash
 pnpm test
 pnpm e2e
