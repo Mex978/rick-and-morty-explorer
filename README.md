@@ -70,14 +70,14 @@ Both routes send `Cache-Control: public, max-age=3600`.
 - Smart/dumb components map onto server/client components: the smart one fetches on the server, the dumb one only renders and translates.
 - next-intl handles routing (`/pt-BR`, `/en`), messages, plurals and date formatting. A test guarantees both locales have the same keys.
 - There is no data fetching library on the client. Server components call the BFF with `fetch` and Next's data cache, and the `Cache-Control` header covers the browser.
-- Search lives in the URL (`?q=`). Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is shareable as a link.
+- Episode search lives in the URL (`?q=`). Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is shareable as a link. Characters are filtered on the client instead, because the whole episode is already on the page.
 - Themes are CSS variables toggled by a `data-theme` attribute, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme, switching re-renders nothing, and browsers with the View Transitions API reveal the new theme in a circle from the click.
 
 ## Testing
 
 - `apps/api`: unit tests for the mapper, the service (sorting, single batch call) and the HTTP client (error mapping with nock), plus an integration test that boots the whole app and checks the routes, validation and cache behaviour.
-- `apps/web`: component tests for both layouts, the pagination and the theme toggle, tests for the smart components with the API mocked, the API client and the message parity between locales.
-- `e2e`: seven Playwright tests against the real API covering the list, pagination, search, the sorted character list, the language switch and the theme switch.
+- `apps/web`: component tests for both layouts (including search and the character filter), the pagination and the theme toggle, tests for the smart components with the API mocked, the API client and the message parity between locales.
+- `e2e`: eight Playwright tests against the real API covering the list, pagination, search, the sorted character list, the character filter, the language switch and the theme switch.
 
 ```bash
 pnpm test
