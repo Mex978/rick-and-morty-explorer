@@ -1,7 +1,7 @@
-import { useTranslations } from 'next-intl';
+import { Episodes } from '@/features/episodes';
 
-export default function EpisodesPage() {
-  const t = useTranslations('episodes');
+export default async function EpisodesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const { page } = await searchParams;
 
-  return <h1>{t('title')}</h1>;
+  return <Episodes page={Number(page) || 1} />;
 }
