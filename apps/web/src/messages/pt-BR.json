@@ -2,7 +2,11 @@
   "app": {
     "title": "Rick and Morty Explorer",
     "language": "Idioma",
-    "theme": "Alternar tema"
+    "theme": "Alternar tema",
+    "locales": {
+      "pt-BR": "Português (Brasil)",
+      "en": "English"
+    }
   },
   "episodes": {
     "title": "Episódios",
