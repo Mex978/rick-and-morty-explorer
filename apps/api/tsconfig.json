@@ -1,0 +1,8 @@
+{
+  "extends": "@rma/tsconfig/nest.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": "."
+  },
+  "include": ["src", "test"]
+}

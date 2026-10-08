@@ -1,0 +1,18 @@
+import { z } from 'zod';
+
+const envSchema = z.object({
+  PORT: z.coerce.number().int().positive().default(3001),
+  CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  RICK_AND_MORTY_API_URL: z.url().default('https://rickandmortyapi.com/api'),
+  CACHE_TTL_SECONDS: z.coerce.number().int().nonnegative().default(3600),
+});
+
+export type Env = z.infer<typeof envSchema>;
+
+export function validateEnv(config: Record<string, unknown>): Env {
+  const result = envSchema.safeParse(config);
+  if (!result.success) {
+    throw new Error(`Invalid environment variables:\n${z.prettifyError(result.error)}`);
+  }
+  return result.data;
+}

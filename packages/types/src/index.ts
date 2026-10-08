@@ -18,6 +18,10 @@ export interface Character {
   location: string;
 }
 
+export interface EpisodeDetail extends Episode {
+  characters: Character[];
+}
+
 export interface Paginated<T> {
   info: {
     count: number;
