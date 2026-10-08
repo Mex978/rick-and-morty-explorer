@@ -1,10 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
-import { VersioningType } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import nock from 'nock';
 import request from 'supertest';
 
 import { AppModule } from '../src/app.module';
+import { setupApp } from '../src/app.setup';
 import characters from './fixtures/characters.json';
 import episode from './fixtures/episode.json';
 import episodes from './fixtures/episodes.json';
@@ -22,9 +22,7 @@ describe('GET /api/v1/episodes', () => {
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = moduleRef.createNestApplication();
-    app.setGlobalPrefix('api');
-    app.enableVersioning({ type: VersioningType.URI });
+    app = setupApp(moduleRef.createNestApplication());
     await app.init();
   });
 
