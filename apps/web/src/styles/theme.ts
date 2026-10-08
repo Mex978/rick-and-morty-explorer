@@ -35,9 +35,9 @@ export const theme = {
     muted: 'var(--color-muted)',
     primary: 'var(--color-primary)',
     status: {
-      alive: '#2e9e5b',
-      dead: '#d0453b',
-      unknown: '#8a929c',
+      alive: '#1f7a45',
+      dead: '#b93a31',
+      unknown: '#5f6670',
     },
   },
   radius: '10px',

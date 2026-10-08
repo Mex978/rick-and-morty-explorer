@@ -130,7 +130,7 @@ describe('EpisodesLayout', () => {
       />,
     );
 
-    expect(screen.getByText('Anterior')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled();
     expect(screen.getByRole('link', { name: 'Próxima' })).toHaveAttribute('href', '/pt-BR?page=2');
   });
 });

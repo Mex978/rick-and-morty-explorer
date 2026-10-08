@@ -1,4 +1,6 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+
+import { Link } from '@/i18n/navigation';
 
 export const Nav = styled.nav`
   display: flex;
@@ -8,18 +10,28 @@ export const Nav = styled.nav`
   margin-top: 32px;
 `;
 
-export const PageLink = styled.span<{ $disabled?: boolean }>`
+const pageControl = css`
   padding: 8px 16px;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius};
   background: ${({ theme }) => theme.colors.surface};
+  color: inherit;
+  font: inherit;
   font-weight: 500;
-  opacity: ${({ $disabled }) => ($disabled ? 0.4 : 1)};
-  pointer-events: ${({ $disabled }) => ($disabled ? 'none' : 'auto')};
+`;
+
+export const PageLink = styled(Link)`
+  ${pageControl}
 
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
   }
+`;
+
+export const PageButton = styled.button`
+  ${pageControl}
+  opacity: 0.4;
+  cursor: not-allowed;
 `;
 
 export const Status = styled.span`
