@@ -5,7 +5,8 @@ const apiPort = process.env.API_PORT ?? '3001';
 
 export default defineConfig({
   testDir: 'tests',
-  fullyParallel: true,
+  // Serial on purpose: the public API rate limits bursts, and the whole suite takes a few seconds anyway.
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
