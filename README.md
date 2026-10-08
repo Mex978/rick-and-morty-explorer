@@ -71,7 +71,7 @@ Both routes send `Cache-Control: public, max-age=3600`.
 - next-intl handles routing (`/pt-BR`, `/en`), messages, plurals and date formatting. A test guarantees both locales have the same keys.
 - There is no data fetching library on the client. Server components call the BFF with `fetch` and Next's data cache, and the `Cache-Control` header covers the browser.
 - Search lives in the URL (`?q=`). Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is shareable as a link.
-- Themes are CSS variables toggled by a `data-theme` attribute, following the system preference by default. Switching re-renders nothing, a one-line inline script applies the saved choice before the first paint, and browsers with the View Transitions API reveal the new theme in a circle from the click.
+- Themes are CSS variables toggled by a `data-theme` attribute, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme, switching re-renders nothing, and browsers with the View Transitions API reveal the new theme in a circle from the click.
 
 ## Testing
 
