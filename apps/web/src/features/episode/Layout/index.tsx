@@ -40,21 +40,21 @@ export function EpisodeLayout({ episode }: EpisodeProps) {
       </Meta>
       <SectionTitle>{t('characters')}</SectionTitle>
       <Grid>
-        {episode.characters.map((character) => (
-          <CharacterCard key={character.id} character={character} />
+        {episode.characters.map((character, index) => (
+          <CharacterCard key={character.id} character={character} priority={index < 4} />
         ))}
       </Grid>
     </>
   );
 }
 
-function CharacterCard({ character }: { character: Character }) {
+function CharacterCard({ character, priority }: { character: Character; priority: boolean }) {
   const t = useTranslations('character');
   const status = toStatusKey(character.status);
 
   return (
     <Card>
-      <Image src={character.image} alt={character.name} width={300} height={300} />
+      <Image src={character.image} alt={character.name} width={300} height={300} priority={priority} />
       <CardBody>
         <Name>{character.name}</Name>
         <Badge $status={status}>{t(`status.${status}`)}</Badge>
