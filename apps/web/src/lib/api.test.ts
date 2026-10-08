@@ -25,6 +25,14 @@ describe('api client', () => {
     });
   });
 
+  it('sends the search query as the name filter', async () => {
+    const fetchMock = stubFetch(200, { info: {}, results: [] });
+
+    await getEpisodes(1, 'rick');
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/api/v1/episodes?page=1&name=rick', expect.anything());
+  });
+
   it('returns the parsed episode detail', async () => {
     stubFetch(200, { id: 1, name: 'Pilot' });
 
