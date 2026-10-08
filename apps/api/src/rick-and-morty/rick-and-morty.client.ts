@@ -22,10 +22,13 @@ export class RickAndMortyClient {
     return this.get<RawEpisode>(`/episode/${id}`);
   }
 
-  getCharacters(ids: number[]): Promise<RawCharacter[]> {
-    if (ids.length === 0) return Promise.resolve([]);
+  async getCharacters(ids: number[]): Promise<RawCharacter[]> {
+    if (ids.length === 0) return [];
 
-    return this.get<RawCharacter[]>(`/character/${ids.join(',')}`);
+    const data = await this.get<RawCharacter | RawCharacter[]>(`/character/${ids.join(',')}`);
+
+    // The upstream returns a bare object instead of a one-element array when a single id is requested.
+    return Array.isArray(data) ? data : [data];
   }
 
   private async get<T>(path: string, params?: Record<string, number>): Promise<T> {

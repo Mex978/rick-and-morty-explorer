@@ -33,6 +33,14 @@ describe('RickAndMortyClient', () => {
     expect(result).toHaveLength(4);
   });
 
+  it('normalizes a single character response into an array', async () => {
+    nock(baseUrl).get('/character/1').reply(200, characters[0]);
+
+    const result = await client.getCharacters([1]);
+
+    expect(result).toEqual([characters[0]]);
+  });
+
   it('does not call the upstream when there are no ids', async () => {
     const result = await client.getCharacters([]);
 
