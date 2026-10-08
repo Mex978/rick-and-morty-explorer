@@ -13,5 +13,21 @@ export default defineConfig({
     server: {
       deps: { inline: ['next-intl'] },
     },
+    coverage: {
+      include: ['src/**/*.{ts,tsx}'],
+      // Next runtime glue with no logic of its own: wired by the framework and exercised end to end by Playwright.
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.d.ts',
+        'src/proxy.ts',
+        'src/i18n/request.ts',
+        'src/i18n/navigation.ts',
+        'src/lib/registry.tsx',
+        'src/styles/global.ts',
+        'src/app/[locale]/layout.tsx',
+        'src/**/styles.ts',
+      ],
+      thresholds: { statements: 95, branches: 85, functions: 95, lines: 95 },
+    },
   },
 });
