@@ -3,15 +3,19 @@ import {
   BadGatewayException,
   GatewayTimeoutException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { isAxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
 import type { RawCharacter, RawEpisode, RawPaginated } from './rick-and-morty.types';
 
 @Injectable()
 export class RickAndMortyClient {
+  private readonly logger = new Logger(RickAndMortyClient.name);
+
   constructor(private readonly http: HttpService) {}
 
   getEpisodes(page: number, name?: string): Promise<RawPaginated<RawEpisode>> {
@@ -36,20 +40,21 @@ export class RickAndMortyClient {
       const response = await firstValueFrom(this.http.get<T>(path, { params }));
       return response.data;
     } catch (error) {
-      throw this.toHttpException(error);
+      if (!isAxiosError(error)) throw error;
+      throw this.toHttpException(error, path);
     }
   }
 
-  private toHttpException(error: unknown): Error {
-    if (!isAxiosError(error)) {
-      return new BadGatewayException('Upstream request failed');
-    }
+  private toHttpException(error: AxiosError, path: string): Error {
     if (error.response?.status === 404) {
-      return new NotFoundException();
+      return new NotFoundException(undefined, { cause: error });
     }
+
+    this.logger.error(`Upstream request to ${path} failed: ${error.message}`);
+
     if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-      return new GatewayTimeoutException('Upstream request timed out');
+      return new GatewayTimeoutException('Upstream request timed out', { cause: error });
     }
-    return new BadGatewayException('Upstream request failed');
+    return new BadGatewayException('Upstream request failed', { cause: error });
   }
 }

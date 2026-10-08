@@ -8,7 +8,7 @@ import { EpisodesLayout } from './Layout';
 
 export async function Episodes({ page, query }: { page: number; query: string }) {
   const { info, results } = await getEpisodes(page, query).catch((error: unknown) => {
-    if (error instanceof ApiError && error.status === 404) notFound();
+    if (error instanceof ApiError && (error.status === 404 || error.status === 400)) notFound();
     throw error;
   });
 

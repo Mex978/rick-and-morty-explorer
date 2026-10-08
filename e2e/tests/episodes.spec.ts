@@ -15,7 +15,7 @@ test('navigates to the next page', async ({ page }) => {
   await page.getByRole('link', { name: 'Próxima' }).click();
 
   await expect(page).toHaveURL(/page=2$/);
-  await expect(page.getByText('Página 2 de 3')).toBeVisible();
+  await expect(page.getByText(/Página 2 de \d+/)).toBeVisible();
   await expect(page.getByRole('link', { name: /Pilot/ })).toHaveCount(0);
 });
 

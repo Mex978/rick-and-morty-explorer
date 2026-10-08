@@ -2,7 +2,12 @@
   "app": {
     "title": "Rick and Morty Explorer",
     "language": "Language",
-    "theme": "Toggle theme"
+    "theme": "Toggle theme",
+    "description": "Browse the episodes of Rick and Morty and the characters in each one.",
+    "locales": {
+      "pt-BR": "Português (Brasil)",
+      "en": "English"
+    }
   },
   "episodes": {
     "title": "Episodes",

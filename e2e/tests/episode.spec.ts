@@ -20,7 +20,6 @@ test('filters the characters by name without leaving the page', async ({ page })
   await page.getByRole('searchbox').fill('smith');
 
   await expect(page).toHaveURL(/\/pt-BR\/episodes\/1$/);
-  const names = await page.getByRole('img').evaluateAll((images) => images.map((img) => img.getAttribute('alt')));
-  expect(names.length).toBeGreaterThan(0);
-  expect(names.every((name) => name!.includes('Smith'))).toBe(true);
+  await expect(page.getByRole('listitem').filter({ hasNotText: 'Smith' })).toHaveCount(0);
+  await expect(page.getByRole('listitem').first()).toBeVisible();
 });

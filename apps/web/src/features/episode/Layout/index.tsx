@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 import { SearchField } from '@/components/SearchField';
 import { Link } from '@/i18n/navigation';
-import { parseAirDate } from '@/lib/air-date';
+import { formatAirDate } from '@/lib/air-date';
 
 import type { EpisodeProps } from '../data';
 import {
@@ -39,7 +39,7 @@ export function EpisodeLayout({ episode }: EpisodeProps) {
       <Code>{episode.code}</Code>
       <Title>{episode.name}</Title>
       <Meta>
-        {t('airDate', { date: format.dateTime(parseAirDate(episode.airDate), { dateStyle: 'long' }) })}
+        {t('airDate', { date: formatAirDate(episode.airDate, format) })}
         {' · '}
         {t('characterCount', { count: episode.characterCount })}
       </Meta>

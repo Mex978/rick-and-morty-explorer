@@ -24,7 +24,6 @@ jobs:
   e2e:
     needs: check
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -40,5 +39,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-results
-          path: e2e/test-results
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results

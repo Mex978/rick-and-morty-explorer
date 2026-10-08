@@ -9,8 +9,8 @@ describe('Pagination', () => {
 
     expect(screen.getByText('Página 1 de 1')).toBeInTheDocument();
     expect(screen.queryAllByRole('link')).toHaveLength(0);
-    expect(screen.getByText('Anterior')).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText('Próxima')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled();
   });
 
   it('links to both neighbours in the middle', () => {
@@ -24,6 +24,6 @@ describe('Pagination', () => {
     render(<Pagination currentPage={3} totalPages={3} prevHref="/?page=2" nextHref={null} />);
 
     expect(screen.getByRole('link', { name: 'Anterior' })).toBeInTheDocument();
-    expect(screen.getByText('Próxima')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled();
   });
 });

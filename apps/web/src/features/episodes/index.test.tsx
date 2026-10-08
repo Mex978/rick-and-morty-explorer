@@ -50,6 +50,12 @@ describe('Episodes', () => {
     expect(screen.getByRole('link', { name: 'Próxima' })).toHaveAttribute('href', '/pt-BR?page=2&q=rick');
   });
 
+  it('renders the not found page when the api rejects the query', async () => {
+    vi.mocked(getEpisodes).mockRejectedValue(new ApiError(400, '/episodes?page=1&name=x'));
+
+    await expect(Episodes({ page: 1, query: 'x' })).rejects.toMatchObject({ digest: expect.stringContaining('404') });
+  });
+
   it('renders the not found page when the page does not exist', async () => {
     vi.mocked(getEpisodes).mockRejectedValue(new ApiError(404, '/episodes?page=99'));
 

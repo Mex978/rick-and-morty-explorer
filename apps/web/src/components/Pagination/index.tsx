@@ -2,9 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
-import { Link } from '@/i18n/navigation';
-
-import { Nav, PageLink, Status } from './styles';
+import { Nav, PageButton, PageLink, Status } from './styles';
 
 export interface PaginationProps {
   currentPage: number;
@@ -18,25 +16,9 @@ export function Pagination({ currentPage, totalPages, prevHref, nextHref }: Pagi
 
   return (
     <Nav aria-label={t('page', { current: currentPage, total: totalPages })}>
-      {prevHref ? (
-        <PageLink as={Link} href={prevHref}>
-          {t('previous')}
-        </PageLink>
-      ) : (
-        <PageLink $disabled aria-disabled="true">
-          {t('previous')}
-        </PageLink>
-      )}
+      {prevHref ? <PageLink href={prevHref}>{t('previous')}</PageLink> : <PageButton disabled>{t('previous')}</PageButton>}
       <Status>{t('page', { current: currentPage, total: totalPages })}</Status>
-      {nextHref ? (
-        <PageLink as={Link} href={nextHref}>
-          {t('next')}
-        </PageLink>
-      ) : (
-        <PageLink $disabled aria-disabled="true">
-          {t('next')}
-        </PageLink>
-      )}
+      {nextHref ? <PageLink href={nextHref}>{t('next')}</PageLink> : <PageButton disabled>{t('next')}</PageButton>}
     </Nav>
   );
 }

@@ -10,7 +10,7 @@ test('renders the english version at /en', async ({ page }) => {
 test('switches language keeping the current page', async ({ page }) => {
   await page.goto('/pt-BR/episodes/1');
 
-  await page.getByRole('link', { name: 'en', exact: true }).click();
+  await page.getByRole('link', { name: 'English' }).click();
 
   await expect(page).toHaveURL(/\/en\/episodes\/1$/);
   await expect(page.getByRole('heading', { level: 2, name: 'Characters' })).toBeVisible();

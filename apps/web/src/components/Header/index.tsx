@@ -1,5 +1,6 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -12,6 +13,7 @@ export function Header() {
   const t = useTranslations('app');
   const locale = useLocale();
   const pathname = usePathname();
+  const query = Object.fromEntries(useSearchParams());
 
   return (
     <Bar>
@@ -25,8 +27,10 @@ export function Header() {
               <LocaleLink
                 key={option}
                 as={Link}
-                href={pathname}
+                href={{ pathname, query }}
                 locale={option}
+                hrefLang={option}
+                aria-label={t(`locales.${option}`)}
                 $active={option === locale}
                 aria-current={option === locale ? 'true' : undefined}
               >

@@ -1,10 +1,10 @@
 import type { INestApplication } from '@nestjs/common';
-import { VersioningType } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import nock from 'nock';
 import request from 'supertest';
 
 import { AppModule } from '../src/app.module';
+import { setupApp } from '../src/app.setup';
 import characters from './fixtures/characters.json';
 import episode from './fixtures/episode.json';
 import episodes from './fixtures/episodes.json';
@@ -22,9 +22,7 @@ describe('GET /api/v1/episodes', () => {
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = moduleRef.createNestApplication();
-    app.setGlobalPrefix('api');
-    app.enableVersioning({ type: VersioningType.URI });
+    app = setupApp(moduleRef.createNestApplication());
     await app.init();
   });
 
@@ -63,8 +61,21 @@ describe('GET /api/v1/episodes', () => {
     });
   });
 
-  it('returns 400 when page is not a number', async () => {
-    await request(app.getHttpServer()).get('/api/v1/episodes?page=abc').expect(400);
+  it.each(['page=abc', 'page=0', 'page=-1', 'page=1.5', 'name=a&name=b', `name=${'x'.repeat(101)}`])(
+    'returns 400 for the invalid query %s',
+    async (query) => {
+      await request(app.getHttpServer()).get(`/api/v1/episodes?${query}`).expect(400);
+    },
+  );
+
+  it('does not mark error responses as cacheable', async () => {
+    nock(upstream).get('/episode/999').reply(404, { error: 'Episode not found' });
+
+    const badRequest = await request(app.getHttpServer()).get('/api/v1/episodes?page=abc').expect(400);
+    const notFound = await request(app.getHttpServer()).get('/api/v1/episodes/999').expect(404);
+
+    expect(badRequest.headers['cache-control']).toBeUndefined();
+    expect(notFound.headers['cache-control']).toBeUndefined();
   });
 
   it('returns the episode with characters sorted by name', async () => {

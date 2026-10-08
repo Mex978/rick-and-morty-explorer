@@ -6,7 +6,7 @@ import { useEffect, useRef, useTransition } from 'react';
 import { Pagination } from '@/components/Pagination';
 import { SearchField } from '@/components/SearchField';
 import { Link, useRouter } from '@/i18n/navigation';
-import { parseAirDate } from '@/lib/air-date';
+import { formatAirDate } from '@/lib/air-date';
 
 import type { EpisodesProps } from '../data';
 import {
@@ -59,7 +59,7 @@ export function EpisodesLayout({ query, seasons, pagination }: EpisodesProps) {
                   <Link href={`/episodes/${episode.id}`}>
                     <Code>{episode.code}</Code>
                     <Name>{episode.name}</Name>
-                    <Meta>{format.dateTime(parseAirDate(episode.airDate), { dateStyle: 'long' })}</Meta>
+                    <Meta>{formatAirDate(episode.airDate, format)}</Meta>
                     <Meta>{t('characterCount', { count: episode.characterCount })}</Meta>
                   </Link>
                 </Card>

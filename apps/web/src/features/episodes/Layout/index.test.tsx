@@ -98,6 +98,22 @@ describe('EpisodesLayout', () => {
     expect(replace).toHaveBeenCalledWith('/?q=rick');
   });
 
+  it('searches immediately when the user presses enter', () => {
+    render(
+      <EpisodesLayout
+        query=""
+        seasons={seasons}
+        pagination={{ currentPage: 1, totalPages: 3, prevHref: null, nextHref: '/?page=2' }}
+      />,
+    );
+    const input = screen.getByRole('searchbox', { name: 'Buscar episódio' });
+
+    fireEvent.change(input, { target: { value: 'morty' } });
+    fireEvent.submit(input.closest('form')!);
+
+    expect(replace).toHaveBeenCalledWith('/?q=morty');
+  });
+
   it('goes back to the full list as soon as the search is cleared', () => {
     render(
       <EpisodesLayout
@@ -130,7 +146,7 @@ describe('EpisodesLayout', () => {
       />,
     );
 
-    expect(screen.getByText('Anterior')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled();
     expect(screen.getByRole('link', { name: 'Próxima' })).toHaveAttribute('href', '/pt-BR?page=2');
   });
 });
