@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
-  CORS_ORIGIN: z.string().default('http://localhost:3000'),
   RICK_AND_MORTY_API_URL: z.url().default('https://rickandmortyapi.com/api'),
   CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 });
