@@ -49,6 +49,20 @@ describe('GET /api/v1/episodes', () => {
     });
   });
 
+  it('filters episodes by name and answers an empty page when nothing matches', async () => {
+    nock(upstream).get('/episode').query({ page: 1, name: 'pilot' }).reply(200, episodes);
+    nock(upstream).get('/episode').query({ page: 1, name: 'nothing' }).reply(404, { error: 'There is nothing here' });
+
+    const found = await request(app.getHttpServer()).get('/api/v1/episodes?name=pilot').expect(200);
+    const empty = await request(app.getHttpServer()).get('/api/v1/episodes?name=nothing').expect(200);
+
+    expect(found.body.results).toHaveLength(2);
+    expect(empty.body).toEqual({
+      info: { count: 0, pages: 0, currentPage: 1, hasNext: false, hasPrev: false },
+      results: [],
+    });
+  });
+
   it('returns 400 when page is not a number', async () => {
     await request(app.getHttpServer()).get('/api/v1/episodes?page=abc').expect(400);
   });

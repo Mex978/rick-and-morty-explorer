@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { RickAndMortyClient } from '../rick-and-morty/rick-and-morty.client';
@@ -28,9 +29,34 @@ describe('EpisodesService', () => {
 
     const page = await service.list(1);
 
-    expect(client.getEpisodes).toHaveBeenCalledWith(1);
+    expect(client.getEpisodes).toHaveBeenCalledWith(1, undefined);
     expect(page.info.currentPage).toBe(1);
     expect(page.results.map((e) => e.code)).toEqual(['S01E01', 'S01E02']);
+  });
+
+  it('forwards the name filter to the client', async () => {
+    client.getEpisodes.mockResolvedValue(episodes);
+
+    await service.list(2, 'rick');
+
+    expect(client.getEpisodes).toHaveBeenCalledWith(2, 'rick');
+  });
+
+  it('returns an empty page when a search has no matches', async () => {
+    client.getEpisodes.mockRejectedValue(new NotFoundException());
+
+    const page = await service.list(1, 'nothing');
+
+    expect(page).toEqual({
+      info: { count: 0, pages: 0, currentPage: 1, hasNext: false, hasPrev: false },
+      results: [],
+    });
+  });
+
+  it('keeps the 404 when the page itself does not exist', async () => {
+    client.getEpisodes.mockRejectedValue(new NotFoundException());
+
+    await expect(service.list(99)).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('fetches all characters of an episode in a single batch', async () => {
