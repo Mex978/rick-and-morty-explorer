@@ -11,6 +11,7 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "e2e": "turbo build && pnpm --filter @rma/e2e e2e",
     "prepare": "husky"
   },
   "devDependencies": {
