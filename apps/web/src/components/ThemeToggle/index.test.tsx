@@ -39,6 +39,19 @@ describe('ThemeToggle', () => {
     );
   });
 
+  it('still applies the theme when the browser skips the transition', async () => {
+    document.startViewTransition = vi.fn((update: () => void) => {
+      update();
+      return { ready: Promise.reject(new DOMException('skipped', 'InvalidStateError')) } as ViewTransition;
+    });
+    render(<ThemeToggle />);
+
+    screen.getByRole('button', { name: 'Alternar tema' }).click();
+    await Promise.resolve();
+
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+
   it('switches back to light on the next click', () => {
     render(<ThemeToggle />);
     const button = screen.getByRole('button', { name: 'Alternar tema' });
