@@ -20,8 +20,11 @@ export class EpisodesController {
 
   @Get()
   @Header('Cache-Control', 'public, max-age=3600')
-  list(@Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number): Promise<Paginated<Episode>> {
-    return this.episodes.list(page);
+  list(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('name') name = '',
+  ): Promise<Paginated<Episode>> {
+    return this.episodes.list(page, name.trim() || undefined);
   }
 
   @Get(':id')
