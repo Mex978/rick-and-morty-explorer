@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -6,7 +7,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Header } from '@/components/Header';
 import { routing } from '@/i18n/routing';
 import { StyledComponentsRegistry } from '@/lib/registry';
-import { themeScript } from '@/styles/theme';
+import { isThemeName, THEME_COOKIE } from '@/styles/theme';
 
 interface Props {
   children: React.ReactNode;
@@ -30,11 +31,10 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   setRequestLocale(locale);
 
+  const savedTheme = (await cookies()).get(THEME_COOKIE)?.value;
+
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
+    <html lang={locale} data-theme={isThemeName(savedTheme) ? savedTheme : undefined}>
       <body>
         <StyledComponentsRegistry>
           <NextIntlClientProvider>

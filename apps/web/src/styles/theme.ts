@@ -18,10 +18,13 @@ const dark: typeof light = {
 
 export const palettes = { light, dark };
 
-export const THEME_STORAGE_KEY = 'theme';
+export const THEME_COOKIE = 'theme';
 
-// Runs inline before the first paint so a saved preference never flashes the other theme on load.
-export const themeScript = `try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t)document.documentElement.dataset.theme=t}catch(e){}`;
+export type ThemeName = keyof typeof palettes;
+
+export function isThemeName(value: unknown): value is ThemeName {
+  return value === 'light' || value === 'dark';
+}
 
 export const theme = {
   colors: {

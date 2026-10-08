@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import type { MouseEvent } from 'react';
 
-import { THEME_STORAGE_KEY } from '@/styles/theme';
+import { THEME_COOKIE } from '@/styles/theme';
 
 import { Button, Moon, Sun } from './styles';
 
@@ -21,11 +21,8 @@ export function ThemeToggle() {
       root.dataset.theme = next;
     };
 
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, next);
-    } catch {
-      // Storage can be blocked (private mode); the theme still applies for this page.
-    }
+    // A cookie, not localStorage, so the server renders the chosen theme and the page never flashes the other one.
+    document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
 
     if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       apply();
