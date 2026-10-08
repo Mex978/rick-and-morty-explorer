@@ -13,6 +13,7 @@ describe('EpisodesLayout', () => {
   it('renders episodes grouped by season in pt-BR', () => {
     render(
       <EpisodesLayout
+        query=""
         seasons={seasons}
         pagination={{ currentPage: 1, totalPages: 3, prevHref: null, nextHref: '/?page=2' }}
       />,
@@ -34,6 +35,7 @@ describe('EpisodesLayout', () => {
   it('links each episode to its detail page', () => {
     render(
       <EpisodesLayout
+        query=""
         seasons={seasons}
         pagination={{ currentPage: 1, totalPages: 3, prevHref: null, nextHref: '/?page=2' }}
       />,
@@ -42,9 +44,25 @@ describe('EpisodesLayout', () => {
     expect(screen.getByRole('link', { name: /Pilot/ })).toHaveAttribute('href', '/pt-BR/episodes/1');
   });
 
+  it('shows the current query and an empty state when nothing matches', () => {
+    render(
+      <EpisodesLayout
+        query="nothing"
+        seasons={[]}
+        pagination={{ currentPage: 1, totalPages: 0, prevHref: null, nextHref: null }}
+      />,
+    );
+
+    expect(screen.getByRole('searchbox', { name: 'Buscar episódio' })).toHaveValue('nothing');
+    expect(screen.getByText(/Nenhum episódio encontrado para “nothing”/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Limpar busca' })).toHaveAttribute('href', '/pt-BR');
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
   it('disables the previous link on the first page and links to the next one', () => {
     render(
       <EpisodesLayout
+        query=""
         seasons={seasons}
         pagination={{ currentPage: 1, totalPages: 3, prevHref: null, nextHref: '/?page=2' }}
       />,

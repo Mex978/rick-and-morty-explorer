@@ -8,6 +8,7 @@ export interface SeasonGroup {
 }
 
 export interface EpisodesProps {
+  query: string;
   seasons: SeasonGroup[];
   pagination: PaginationProps;
 }

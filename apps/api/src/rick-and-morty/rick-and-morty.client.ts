@@ -14,8 +14,8 @@ import type { RawCharacter, RawEpisode, RawPaginated } from './rick-and-morty.ty
 export class RickAndMortyClient {
   constructor(private readonly http: HttpService) {}
 
-  getEpisodes(page: number): Promise<RawPaginated<RawEpisode>> {
-    return this.get<RawPaginated<RawEpisode>>('/episode', { page });
+  getEpisodes(page: number, name?: string): Promise<RawPaginated<RawEpisode>> {
+    return this.get<RawPaginated<RawEpisode>>('/episode', name ? { page, name } : { page });
   }
 
   getEpisode(id: number): Promise<RawEpisode> {
@@ -31,7 +31,7 @@ export class RickAndMortyClient {
     return Array.isArray(data) ? data : [data];
   }
 
-  private async get<T>(path: string, params?: Record<string, number>): Promise<T> {
+  private async get<T>(path: string, params?: Record<string, string | number>): Promise<T> {
     try {
       const response = await firstValueFrom(this.http.get<T>(path, { params }));
       return response.data;

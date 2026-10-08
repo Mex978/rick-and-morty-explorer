@@ -24,6 +24,14 @@ describe('RickAndMortyClient', () => {
     expect(scope.isDone()).toBe(true);
   });
 
+  it('filters episodes by name when one is given', async () => {
+    const scope = nock(baseUrl).get('/episode').query({ page: 1, name: 'rick' }).reply(200, { info: {}, results: [] });
+
+    await client.getEpisodes(1, 'rick');
+
+    expect(scope.isDone()).toBe(true);
+  });
+
   it('fetches several characters in one request', async () => {
     const scope = nock(baseUrl).get('/character/1,2,35,38').reply(200, characters);
 

@@ -5,6 +5,51 @@ export const Title = styled.h1`
   font-size: 1.75rem;
 `;
 
+export const SearchForm = styled.form`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+`;
+
+export const SearchInput = styled.input`
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius};
+  background: ${({ theme }) => theme.colors.surface};
+  color: inherit;
+  font: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+export const SearchButton = styled.button`
+  padding: 10px 18px;
+  border: none;
+  border-radius: ${({ theme }) => theme.radius};
+  background: ${({ theme }) => theme.colors.primary};
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+export const Empty = styled.p`
+  margin: 0;
+  padding: 48px 0;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.muted};
+
+  a {
+    color: ${({ theme }) => theme.colors.primary};
+    font-weight: 600;
+  }
+`;
+
 export const Season = styled.section`
   margin-bottom: 32px;
 `;

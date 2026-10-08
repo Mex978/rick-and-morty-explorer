@@ -18,3 +18,14 @@ test('navigates to the next page', async ({ page }) => {
   await expect(page.getByText('Página 2 de 3')).toBeVisible();
   await expect(page.getByRole('link', { name: /Pilot/ })).toHaveCount(0);
 });
+
+test('searches episodes by name', async ({ page }) => {
+  await page.goto('/pt-BR');
+
+  await page.getByRole('searchbox').fill('pilot');
+  await page.getByRole('button', { name: 'Buscar' }).click();
+
+  await expect(page).toHaveURL(/q=pilot$/);
+  await expect(page.getByRole('link', { name: /Pilot/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Lawnmower Dog/ })).toHaveCount(0);
+});

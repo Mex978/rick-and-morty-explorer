@@ -6,20 +6,27 @@ import { ApiError, getEpisodes } from '@/lib/api';
 import type { SeasonGroup } from './data';
 import { EpisodesLayout } from './Layout';
 
-export async function Episodes({ page }: { page: number }) {
-  const { info, results } = await getEpisodes(page).catch((error: unknown) => {
+export async function Episodes({ page, query }: { page: number; query: string }) {
+  const { info, results } = await getEpisodes(page, query).catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;
   });
 
+  const hrefFor = (target: number) => {
+    const params = new URLSearchParams({ page: String(target) });
+    if (query) params.set('q', query);
+    return `/?${params}`;
+  };
+
   return (
     <EpisodesLayout
+      query={query}
       seasons={groupBySeason(results)}
       pagination={{
         currentPage: info.currentPage,
         totalPages: info.pages,
-        prevHref: info.hasPrev ? `/?page=${page - 1}` : null,
-        nextHref: info.hasNext ? `/?page=${page + 1}` : null,
+        prevHref: info.hasPrev ? hrefFor(page - 1) : null,
+        nextHref: info.hasNext ? hrefFor(page + 1) : null,
       }}
     />
   );

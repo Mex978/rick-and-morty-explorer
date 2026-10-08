@@ -1,15 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Episode, EpisodeDetail, Paginated } from '@rma/types';
 
 import { RickAndMortyClient } from '../rick-and-morty/rick-and-morty.client';
+import type { RawEpisode, RawPaginated } from '../rick-and-morty/rick-and-morty.types';
 import { characterIdsFrom, toCharacter, toEpisode, toPaginated } from './episodes.mapper';
+
+const emptyPage: RawPaginated<RawEpisode> = { info: { count: 0, pages: 0, next: null, prev: null }, results: [] };
 
 @Injectable()
 export class EpisodesService {
   constructor(private readonly client: RickAndMortyClient) {}
 
-  async list(page: number): Promise<Paginated<Episode>> {
-    const raw = await this.client.getEpisodes(page);
+  async list(page: number, name?: string): Promise<Paginated<Episode>> {
+    const raw = await this.client.getEpisodes(page, name).catch((error: unknown) => {
+      // The upstream answers 404 to a name filter with no matches, which for a search is an empty result.
+      if (name && error instanceof NotFoundException) return emptyPage;
+      throw error;
+    });
+
     return toPaginated(raw, page, toEpisode);
   }
 
