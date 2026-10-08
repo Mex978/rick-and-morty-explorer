@@ -11,7 +11,7 @@ test('opens an episode and lists its characters in alphabetical order', async ({
   const names = await page.getByRole('img').evaluateAll((images) => images.map((img) => img.getAttribute('alt')));
 
   expect(names.length).toBeGreaterThan(1);
-  expect(names).toEqual([...names].sort((a, b) => a!.localeCompare(b!)));
+  expect(names).toEqual([...names].sort((a, b) => a!.localeCompare(b!, 'en')));
 });
 
 test('filters the characters by name without leaving the page', async ({ page }) => {
