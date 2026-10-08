@@ -7,12 +7,22 @@ import type { SeasonGroup } from './data';
 import { EpisodesLayout } from './Layout';
 
 export async function Episodes({ page }: { page: number }) {
-  const { results } = await getEpisodes(page).catch((error: unknown) => {
+  const { info, results } = await getEpisodes(page).catch((error: unknown) => {
     if (error instanceof ApiError && error.status === 404) notFound();
     throw error;
   });
 
-  return <EpisodesLayout seasons={groupBySeason(results)} />;
+  return (
+    <EpisodesLayout
+      seasons={groupBySeason(results)}
+      pagination={{
+        currentPage: info.currentPage,
+        totalPages: info.pages,
+        prevHref: info.hasPrev ? `/?page=${page - 1}` : null,
+        nextHref: info.hasNext ? `/?page=${page + 1}` : null,
+      }}
+    />
+  );
 }
 
 function groupBySeason(episodes: Episode[]): SeasonGroup[] {

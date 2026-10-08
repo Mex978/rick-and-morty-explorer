@@ -23,5 +23,10 @@
     "species": "Espécie",
     "origin": "Origem",
     "location": "Última localização"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Próxima",
+    "page": "Página {current} de {total}"
   }
 }

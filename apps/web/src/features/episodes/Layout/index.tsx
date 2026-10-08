@@ -2,13 +2,14 @@
 
 import { useFormatter, useTranslations } from 'next-intl';
 
+import { Pagination } from '@/components/Pagination';
 import { Link } from '@/i18n/navigation';
 import { parseAirDate } from '@/lib/air-date';
 
 import type { EpisodesProps } from '../data';
 import { Card, Code, Grid, Meta, Name, Season, SeasonTitle, Title } from './styles';
 
-export function EpisodesLayout({ seasons }: EpisodesProps) {
+export function EpisodesLayout({ seasons, pagination }: EpisodesProps) {
   const t = useTranslations('episodes');
   const format = useFormatter();
 
@@ -32,6 +33,7 @@ export function EpisodesLayout({ seasons }: EpisodesProps) {
           </Grid>
         </Season>
       ))}
+      <Pagination {...pagination} />
     </>
   );
 }
