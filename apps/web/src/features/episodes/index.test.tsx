@@ -5,6 +5,11 @@ import { render, screen } from '../../../test/render';
 import { ApiError, getEpisodes } from '@/lib/api';
 import { Episodes } from '.';
 
+vi.mock('@/i18n/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/i18n/navigation')>()),
+  useRouter: () => ({ replace: vi.fn() }),
+}));
+
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/api')>()),
   getEpisodes: vi.fn(),
