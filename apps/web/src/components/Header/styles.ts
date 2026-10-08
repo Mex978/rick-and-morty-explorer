@@ -1,6 +1,9 @@
 import styled from 'styled-components';
 
 export const Bar = styled.header`
+  position: sticky;
+  top: 0;
+  z-index: 1;
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.surface};
 `;
@@ -17,6 +20,7 @@ export const Inner = styled.div`
 
 export const Brand = styled.span`
   font-weight: 700;
+  letter-spacing: -0.01em;
   color: ${({ theme }) => theme.colors.primary};
 `;
 
