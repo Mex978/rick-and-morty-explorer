@@ -10,6 +10,9 @@ const config: NextConfig = {
   images: {
     remotePatterns: [{ protocol: 'https', hostname: 'rickandmortyapi.com' }],
   },
+  logging: {
+    fetches: { fullUrl: true },
+  },
 };
 
 export default withNextIntl(config);
