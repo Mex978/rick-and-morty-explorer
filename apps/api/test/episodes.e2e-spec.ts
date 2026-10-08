@@ -1,0 +1,87 @@
+import type { INestApplication } from '@nestjs/common';
+import { VersioningType } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import nock from 'nock';
+import request from 'supertest';
+
+import { AppModule } from '../src/app.module';
+import characters from './fixtures/characters.json';
+import episode from './fixtures/episode.json';
+import episodes from './fixtures/episodes.json';
+
+const upstream = 'https://rickandmortyapi.com/api';
+
+describe('GET /api/v1/episodes', () => {
+  let app: INestApplication;
+
+  beforeAll(() => {
+    nock.disableNetConnect();
+    nock.enableNetConnect('127.0.0.1');
+  });
+  afterAll(() => nock.enableNetConnect());
+
+  beforeEach(async () => {
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    app = moduleRef.createNestApplication();
+    app.setGlobalPrefix('api');
+    app.enableVersioning({ type: VersioningType.URI });
+    await app.init();
+  });
+
+  afterEach(async () => {
+    nock.cleanAll();
+    await app.close();
+  });
+
+  it('lists episodes with pagination info', async () => {
+    nock(upstream).get('/episode').query({ page: 1 }).reply(200, episodes);
+
+    const response = await request(app.getHttpServer()).get('/api/v1/episodes').expect(200);
+
+    expect(response.headers['cache-control']).toBe('public, max-age=3600');
+    expect(response.body.info).toEqual({ count: 51, pages: 3, currentPage: 1, hasNext: true, hasPrev: false });
+    expect(response.body.results[0]).toEqual({
+      id: 1,
+      name: 'Pilot',
+      airDate: 'December 2, 2013',
+      code: 'S01E01',
+      characterCount: 2,
+    });
+  });
+
+  it('returns 400 when page is not a number', async () => {
+    await request(app.getHttpServer()).get('/api/v1/episodes?page=abc').expect(400);
+  });
+
+  it('returns the episode with characters sorted by name', async () => {
+    nock(upstream).get('/episode/1').reply(200, episode);
+    nock(upstream).get('/character/1,2,35,38').reply(200, characters);
+
+    const response = await request(app.getHttpServer()).get('/api/v1/episodes/1').expect(200);
+
+    expect(response.body.code).toBe('S01E01');
+    expect(response.body.characters.map((c: { name: string }) => c.name)).toEqual([
+      'Bepisian',
+      'Beth Smith',
+      'Morty Smith',
+      'Rick Sanchez',
+    ]);
+  });
+
+  it('returns 404 when the episode does not exist', async () => {
+    nock(upstream).get('/episode/999').reply(404, { error: 'Episode not found' });
+
+    await request(app.getHttpServer()).get('/api/v1/episodes/999').expect(404);
+  });
+
+  it('serves repeated requests from cache without hitting the upstream', async () => {
+    const scope = nock(upstream).get('/episode').query({ page: 2 }).once().reply(200, episodes);
+
+    await request(app.getHttpServer()).get('/api/v1/episodes?page=2').expect(200);
+    const second = await request(app.getHttpServer()).get('/api/v1/episodes?page=2').expect(200);
+
+    expect(scope.isDone()).toBe(true);
+    expect(nock.pendingMocks()).toEqual([]);
+    expect(second.body.results).toHaveLength(2);
+  });
+});
