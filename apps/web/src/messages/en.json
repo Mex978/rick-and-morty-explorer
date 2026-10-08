@@ -11,7 +11,6 @@
     "search": {
       "label": "Search episodes",
       "placeholder": "Search by episode name",
-      "submit": "Search",
       "clear": "Clear search"
     },
     "empty": "No episode found for “{query}”."

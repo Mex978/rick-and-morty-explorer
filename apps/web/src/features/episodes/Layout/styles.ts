@@ -7,14 +7,11 @@ export const Title = styled.h1`
 `;
 
 export const SearchForm = styled.form`
-  display: flex;
-  gap: 8px;
   margin-bottom: 32px;
 `;
 
 export const SearchInput = styled.input`
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   padding: 10px 14px;
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radius};
@@ -28,15 +25,9 @@ export const SearchInput = styled.input`
   }
 `;
 
-export const SearchButton = styled.button`
-  padding: 10px 18px;
-  border: none;
-  border-radius: ${({ theme }) => theme.radius};
-  background: ${({ theme }) => theme.colors.primary};
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
+export const Results = styled.div<{ $pending: boolean }>`
+  opacity: ${({ $pending }) => ($pending ? 0.5 : 1)};
+  transition: opacity 0.15s;
 `;
 
 export const Empty = styled.p`
