@@ -1,0 +1,27 @@
+{
+  "app": {
+    "title": "Rick and Morty Explorer",
+    "language": "Language"
+  },
+  "episodes": {
+    "title": "Episodes",
+    "season": "Season {number}",
+    "characterCount": "{count, plural, one {# character} other {# characters}}"
+  },
+  "episode": {
+    "back": "Back to episodes",
+    "airDate": "Aired on {date}",
+    "characters": "Characters",
+    "characterCount": "{count, plural, one {# character} other {# characters}}"
+  },
+  "character": {
+    "status": {
+      "alive": "Alive",
+      "dead": "Dead",
+      "unknown": "Unknown"
+    },
+    "species": "Species",
+    "origin": "Origin",
+    "location": "Last known location"
+  }
+}
