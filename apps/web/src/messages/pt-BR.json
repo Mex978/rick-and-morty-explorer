@@ -28,5 +28,16 @@
     "previous": "Anterior",
     "next": "Próxima",
     "page": "Página {current} de {total}"
+  },
+  "loading": "Carregando...",
+  "error": {
+    "title": "Algo deu errado",
+    "description": "Não foi possível carregar os dados agora.",
+    "retry": "Tentar novamente"
+  },
+  "notFound": {
+    "title": "Página não encontrada",
+    "description": "O que você procura não existe nesta dimensão.",
+    "home": "Ir para os episódios"
   }
 }
