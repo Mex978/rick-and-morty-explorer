@@ -4,6 +4,8 @@ dist
 .turbo
 coverage
 .env
+next-env.d.ts
+*.tsbuildinfo
 test-results
 playwright-report
 .DS_Store

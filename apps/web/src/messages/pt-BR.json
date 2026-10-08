@@ -1,0 +1,43 @@
+{
+  "app": {
+    "title": "Rick and Morty Explorer",
+    "language": "Idioma"
+  },
+  "episodes": {
+    "title": "Episódios",
+    "season": "Temporada {number}",
+    "characterCount": "{count, plural, one {# personagem} other {# personagens}}"
+  },
+  "episode": {
+    "back": "Voltar para os episódios",
+    "airDate": "Exibido em {date}",
+    "characters": "Personagens",
+    "characterCount": "{count, plural, one {# personagem} other {# personagens}}"
+  },
+  "character": {
+    "status": {
+      "alive": "Vivo",
+      "dead": "Morto",
+      "unknown": "Desconhecido"
+    },
+    "species": "Espécie",
+    "origin": "Origem",
+    "location": "Última localização"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Próxima",
+    "page": "Página {current} de {total}"
+  },
+  "loading": "Carregando...",
+  "error": {
+    "title": "Algo deu errado",
+    "description": "Não foi possível carregar os dados agora.",
+    "retry": "Tentar novamente"
+  },
+  "notFound": {
+    "title": "Página não encontrada",
+    "description": "O que você procura não existe nesta dimensão.",
+    "home": "Ir para os episódios"
+  }
+}
