@@ -9,12 +9,13 @@ export default function Loading() {
       <SkeletonBlock $width="260px" $height="1rem" />
       <SkeletonBlock $width="110px" $height="0.8rem" />
       <SkeletonBlock $height="42px" />
-      <SkeletonCards count={8} min="200px">
+      <SkeletonCards count={10} min="200px">
         <SkeletonBlock $height="160px" />
         <SkeletonBlock $width="70%" $height="1rem" />
         <SkeletonBlock $width="48px" $height="1.1rem" $radius="999px" />
         <SkeletonBlock $width="60%" $height="0.8rem" />
       </SkeletonCards>
+      <SkeletonBlock $width="300px" $height="38px" $center />
     </Skeleton>
   );
 }
