@@ -21,17 +21,17 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 
     response.on('finish', () => {
       const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
-      // The matched route pattern (/api/v1/episodes/:id) keeps metric cardinality bounded; raw urls would not.
-      const route = request.route ? `${request.baseUrl}${request.route.path}` : 'unmatched';
       const status = response.statusCode;
-      const cache = response.getHeader('x-cache');
+      const cache = response.getHeader('x-cache')?.toString();
 
-      this.metrics.httpRequestDuration.observe(
-        { method: request.method, route, status },
-        durationMs / 1000,
-      );
-      if (cache === 'HIT' || cache === 'MISS')
-        this.metrics.cacheEvents.inc({ result: cache.toLowerCase() });
+      // Metrics use the matched route pattern (/api/v1/episodes/:id) so their cardinality stays bounded.
+      this.metrics.recordRequest({
+        method: request.method,
+        route: routeOf(request),
+        status,
+        durationMs,
+        cache,
+      });
 
       const line = {
         requestId,
@@ -49,3 +49,6 @@ export class RequestLoggerMiddleware implements NestMiddleware {
     next();
   }
 }
+
+const routeOf = (request: Request) =>
+  request.route ? `${request.baseUrl}${request.route.path}` : 'unmatched';

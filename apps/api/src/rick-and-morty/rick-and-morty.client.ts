@@ -10,6 +10,7 @@ import {
 import { isAxiosError } from 'axios';
 import type { AxiosError } from 'axios';
 import { firstValueFrom, retry, throwError, timer } from 'rxjs';
+import type { MonoTypeOperatorFunction } from 'rxjs';
 
 import { MetricsService } from '../observability/metrics.service';
 import type { RawCharacter, RawEpisode, RawPaginated } from './rick-and-morty.types';
@@ -19,10 +20,15 @@ const RETRYABLE_STATUSES = new Set([502, 503, 504]);
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
 
-const isRetryable = (error: unknown) =>
-  isAxiosError(error) &&
-  error.response !== undefined &&
-  RETRYABLE_STATUSES.has(error.response.status);
+const isTransient = (error: unknown) =>
+  isAxiosError(error) && RETRYABLE_STATUSES.has(error.response?.status ?? 0);
+
+const retryTransientFailures = <T>(): MonoTypeOperatorFunction<T> =>
+  retry({
+    count: MAX_RETRIES,
+    delay: (error: unknown, attempt) =>
+      isTransient(error) ? timer(RETRY_BASE_DELAY_MS * attempt) : throwError(() => error),
+  });
 
 @Injectable()
 export class RickAndMortyClient {
@@ -65,13 +71,7 @@ export class RickAndMortyClient {
     const stop = this.metrics.upstreamRequestDuration.startTimer({ operation });
     try {
       const response = await firstValueFrom(
-        this.http.get<T>(path, { params }).pipe(
-          retry({
-            count: MAX_RETRIES,
-            delay: (error: unknown, attempt) =>
-              isRetryable(error) ? timer(RETRY_BASE_DELAY_MS * attempt) : throwError(() => error),
-          }),
-        ),
+        this.http.get<T>(path, { params }).pipe(retryTransientFailures()),
       );
       stop({ status: response.status });
       return response.data;

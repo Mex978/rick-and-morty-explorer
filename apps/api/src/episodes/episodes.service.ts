@@ -18,13 +18,12 @@ export class EpisodesService {
   constructor(private readonly client: RickAndMortyClient) {}
 
   async list(page: number, name?: string): Promise<Paginated<Episode>> {
-    const raw = await this.client.getEpisodes(page, name).catch((error: unknown) => {
-      // A search with no matches is a 404 upstream but an empty first page for us; later pages stay 404.
-      if (name && page === 1 && error instanceof NotFoundException) return emptyPage;
+    try {
+      return toPaginated(await this.client.getEpisodes(page, name), page, toEpisode);
+    } catch (error) {
+      if (isSearchWithoutMatches(error, name, page)) return toPaginated(emptyPage, page, toEpisode);
       throw error;
-    });
-
-    return toPaginated(raw, page, toEpisode);
+    }
   }
 
   async detail(id: number): Promise<EpisodeDetail> {
@@ -36,4 +35,9 @@ export class EpisodesService {
 
     return { ...toEpisode(raw), characters };
   }
+}
+
+// The upstream answers a search with no matches with a 404; for the first page that is simply an empty list.
+function isSearchWithoutMatches(error: unknown, name: string | undefined, page: number) {
+  return Boolean(name) && page === 1 && error instanceof NotFoundException;
 }

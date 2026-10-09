@@ -32,6 +32,22 @@ export class MetricsService {
     collectDefaultMetrics({ register: this.registry });
   }
 
+  recordRequest(request: {
+    method: string;
+    route: string;
+    status: number;
+    durationMs: number;
+    cache?: string;
+  }) {
+    this.httpRequestDuration.observe(
+      { method: request.method, route: request.route, status: request.status },
+      request.durationMs / 1000,
+    );
+    if (request.cache === 'HIT' || request.cache === 'MISS') {
+      this.cacheEvents.inc({ result: request.cache.toLowerCase() });
+    }
+  }
+
   render(): Promise<string> {
     return this.registry.metrics();
   }

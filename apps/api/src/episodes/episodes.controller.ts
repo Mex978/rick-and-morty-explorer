@@ -9,7 +9,12 @@ import { EpisodesService } from './episodes.service';
 
 const listQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  name: z.string().trim().max(100).optional(),
+  name: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .transform((name) => name || undefined),
 });
 
 @Controller({ path: 'episodes', version: '1' })
@@ -21,7 +26,7 @@ export class EpisodesController {
   list(
     @Query(new ZodValidationPipe(listQuery)) { page, name }: z.infer<typeof listQuery>,
   ): Promise<Paginated<Episode>> {
-    return this.episodes.list(page, name || undefined);
+    return this.episodes.list(page, name);
   }
 
   @Get(':id')
