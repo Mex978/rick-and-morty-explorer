@@ -21,7 +21,6 @@ export class HealthController {
     private readonly config: ConfigService<Env, true>,
   ) {}
 
-  // Liveness: only this process. An upstream outage must not get a healthy container restarted.
   @Get()
   @HealthCheck()
   live(): Promise<HealthCheckResult> {

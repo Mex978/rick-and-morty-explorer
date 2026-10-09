@@ -10,7 +10,7 @@ import { EpisodesModule } from './episodes/episodes.module';
 import { HealthModule } from './health/health.module';
 import { ObservabilityModule } from './observability/observability.module';
 
-// Cache keys are request urls, which include user input (?name=), so the store has to be bounded.
+// Cache keys are request urls, which carry user input, so the store is bounded.
 const MAX_CACHED_RESPONSES = 500;
 
 @Module({

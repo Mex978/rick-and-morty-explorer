@@ -6,7 +6,7 @@ import type { Observable } from 'rxjs';
 
 import type { Env } from '../config/env';
 
-// Set from inside the stream, not with @Header, so error responses never go out as publicly cacheable.
+// Not @Header: that would also mark error responses as publicly cacheable.
 @Injectable()
 export class CacheControlInterceptor implements NestInterceptor {
   constructor(private readonly config: ConfigService<Env, true>) {}

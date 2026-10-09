@@ -27,7 +27,6 @@ function toggle(event: MouseEvent<HTMLElement>) {
   revealFrom(event.clientX, event.clientY, apply);
 }
 
-// Grows a circle from the click until it covers the viewport, with the new theme inside it.
 function revealFrom(x: number, y: number, apply: () => void) {
   const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
 
@@ -44,6 +43,6 @@ function revealFrom(x: number, y: number, apply: () => void) {
       );
     })
     .catch(() => {
-      // The browser skipped the transition (hidden tab, another one running); the theme is applied anyway.
+      // Skipped transition (hidden tab, another one running): the theme is applied anyway.
     });
 }

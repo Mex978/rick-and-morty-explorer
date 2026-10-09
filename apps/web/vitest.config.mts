@@ -15,7 +15,7 @@ export default defineConfig({
     },
     coverage: {
       include: ['src/**/*.{ts,tsx}'],
-      // Next runtime glue with no logic of its own: wired by the framework and exercised end to end by Playwright.
+      // Next runtime glue without logic of its own, covered by Playwright instead.
       exclude: [
         'src/**/*.d.ts',
         'src/proxy.ts',

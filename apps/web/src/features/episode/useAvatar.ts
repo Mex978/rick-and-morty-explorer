@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-// The upstream CDN rate-limits bursts and answers them with a retry-after of about ten seconds.
+// The upstream CDN rate-limits bursts with a retry-after of about ten seconds.
 const RETRY_DELAYS_MS = [4000, 8000];
 
 export function useAvatar(url: string) {

@@ -2,8 +2,7 @@ import { test as base } from '@playwright/test';
 
 export { expect } from '@playwright/test';
 
-// A transparent 1x1 PNG. Locally the browser and the API leave from the same IP, so real avatar downloads
-// would eat the upstream CDN's per-IP quota that the API calls under test need.
+// 1x1 PNG. Locally browser and API share an IP, and real avatar downloads would eat the upstream's per-IP quota.
 const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
   'base64',
