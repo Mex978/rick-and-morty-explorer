@@ -34,7 +34,7 @@ pnpm dev
 
 The web app runs on http://localhost:3000 and the API on http://localhost:3001.
 
-Or with Docker, which also brings up Prometheus and a Grafana dashboard:
+Or with Docker, which builds both apps and also brings up Prometheus and a Grafana dashboard:
 
 ```bash
 docker compose up --build
@@ -45,7 +45,11 @@ docker compose up --build
 | web        | http://localhost:3000                                          |
 | api        | Jest, nock, supertest                                          | mapper, service (sorting, single batch call), HTTP client error mapping, env validation, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
 | Prometheus | http://localhost:9090                                          |
-| Grafana    | http://localhost:3002 (anonymous admin, dashboard provisioned) | Every variable has a working default, so `.env` files are optional; copy `apps/api/.env.example` or `apps/web/.env.example` to `.env` next to it when you need to change one.                                        |
+| Grafana    | http://localhost:3002 (anonymous admin, dashboard provisioned) |
+
+Docker is optional: `pnpm dev` runs the application on its own, and `/health` and `/metrics` are served by the API either way. The compose stack only adds Prometheus and Grafana around it.
+
+Every variable has a working default, so `.env` files are optional; copy `apps/api/.env.example` or `apps/web/.env.example` to `.env` next to it when you need to change one.
 
 | Variable                 | App | Default                           | Purpose                                |
 | ------------------------ | --- | --------------------------------- | -------------------------------------- |
