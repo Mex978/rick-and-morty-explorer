@@ -1,43 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Episode, EpisodeDetail, Paginated } from '@rma/types';
 
-import { RickAndMortyClient } from '../rick-and-morty/rick-and-morty.client';
-import type { RawEpisode, RawPaginated } from '../rick-and-morty/rick-and-morty.types';
-import { characterIdsFrom, toCharacter, toEpisode, toPaginated } from './episodes.mapper';
+import { EPISODE_SOURCE } from './episode-source';
+import type { EpisodeSource } from './episode-source';
 
 // Pinned so the order does not depend on the ICU data of the machine running the API.
 const collator = new Intl.Collator('en');
 
-const emptyPage: RawPaginated<RawEpisode> = {
-  info: { count: 0, pages: 0, next: null, prev: null },
-  results: [],
-};
-
 @Injectable()
 export class EpisodesService {
-  constructor(private readonly client: RickAndMortyClient) {}
+  constructor(@Inject(EPISODE_SOURCE) private readonly source: EpisodeSource) {}
 
-  async list(page: number, name?: string): Promise<Paginated<Episode>> {
-    try {
-      return toPaginated(await this.client.getEpisodes(page, name), page, toEpisode);
-    } catch (error) {
-      if (isSearchWithoutMatches(error, name, page)) return toPaginated(emptyPage, page, toEpisode);
-      throw error;
-    }
+  list(page: number, name?: string): Promise<Paginated<Episode>> {
+    return this.source.listEpisodes(page, name);
   }
 
   async detail(id: number): Promise<EpisodeDetail> {
-    const raw = await this.client.getEpisode(id);
-    const rawCharacters = await this.client.getCharacters(characterIdsFrom(raw.characters));
-    const characters = rawCharacters
-      .map(toCharacter)
-      .sort((a, b) => collator.compare(a.name, b.name));
+    const detail = await this.source.getEpisodeDetail(id);
+    const characters = [...detail.characters].sort((a, b) => collator.compare(a.name, b.name));
 
-    return { ...toEpisode(raw), characters };
+    return { ...detail, characters };
   }
-}
-
-// The upstream answers a search without matches with a 404.
-function isSearchWithoutMatches(error: unknown, name: string | undefined, page: number) {
-  return Boolean(name) && page === 1 && error instanceof NotFoundException;
 }

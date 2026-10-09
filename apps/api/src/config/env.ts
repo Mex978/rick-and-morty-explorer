@@ -9,7 +9,10 @@ const optionalString = z
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
   RICK_AND_MORTY_API_URL: z.url().default('https://rickandmortyapi.com/api'),
-  CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  // The upstream content never changes, so responses are kept for a day.
+  CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(86400),
+  // Calls to the upstream in flight at once; the rest wait, instead of tripping its rate limit.
+  UPSTREAM_CONCURRENCY: z.coerce.number().int().positive().default(3),
   // Requests per minute per client ip. Sized for a server-side consumer such as the Next.js app.
   THROTTLE_LIMIT: z.coerce.number().int().positive().default(300),
   // Proxies in front of the api whose X-Forwarded-For is trusted; 0 when clients connect directly.

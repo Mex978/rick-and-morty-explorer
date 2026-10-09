@@ -20,5 +20,5 @@ test('answers a repeated request from its cache', async ({ request }) => {
   const second = await request.get(`${api}/api/v1/episodes/2`);
 
   expect(second.headers()['x-cache']).toBe('HIT');
-  expect(second.headers()['cache-control']).toBe('public, max-age=3600');
+  expect(second.headers()['cache-control']).toBe('public, max-age=86400');
 });

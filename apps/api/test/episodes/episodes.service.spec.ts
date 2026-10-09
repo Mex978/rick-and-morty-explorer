@@ -1,92 +1,78 @@
-import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { EpisodeDetail, Paginated, Episode } from '@rma/types';
 
-import { RickAndMortyClient } from '../../src/rick-and-morty/rick-and-morty.client';
-import characters from '../fixtures/characters.json';
-import episode from '../fixtures/episode.json';
-import episodes from '../fixtures/episodes.json';
+import { EPISODE_SOURCE } from '../../src/episodes/episode-source';
+import type { EpisodeSource } from '../../src/episodes/episode-source';
 import { EpisodesService } from '../../src/episodes/episodes.service';
+
+const pilot: Episode = {
+  id: 1,
+  name: 'Pilot',
+  airDate: 'December 2, 2013',
+  code: 'S01E01',
+  characterCount: 3,
+};
+const character = (id: number, name: string) => ({
+  id,
+  name,
+  status: 'Alive',
+  species: 'Human',
+  type: '',
+  gender: 'Male',
+  image: '',
+  origin: 'Earth',
+  location: 'Earth',
+});
 
 describe('EpisodesService', () => {
   let service: EpisodesService;
-  const client = {
-    getEpisodes: jest.fn(),
-    getEpisode: jest.fn(),
-    getCharacters: jest.fn(),
+  const source: jest.Mocked<EpisodeSource> = {
+    listEpisodes: jest.fn(),
+    getEpisodeDetail: jest.fn(),
   };
 
   beforeEach(async () => {
     jest.resetAllMocks();
     const moduleRef = await Test.createTestingModule({
-      providers: [EpisodesService, { provide: RickAndMortyClient, useValue: client }],
+      providers: [EpisodesService, { provide: EPISODE_SOURCE, useValue: source }],
     }).compile();
 
     service = moduleRef.get(EpisodesService);
   });
 
-  it('lists episodes for the requested page', async () => {
-    client.getEpisodes.mockResolvedValue(episodes);
+  it('lists the requested page through the source, filter included', async () => {
+    const page: Paginated<Episode> = {
+      info: { count: 1, pages: 1, currentPage: 2, hasNext: false, hasPrev: true },
+      results: [pilot],
+    };
+    source.listEpisodes.mockResolvedValue(page);
 
-    const page = await service.list(1);
+    await expect(service.list(2, 'pilot')).resolves.toBe(page);
 
-    expect(client.getEpisodes).toHaveBeenCalledWith(1, undefined);
-    expect(page.info.currentPage).toBe(1);
-    expect(page.results.map((e) => e.code)).toEqual(['S01E01', 'S01E02']);
+    expect(source.listEpisodes).toHaveBeenCalledWith(2, 'pilot');
   });
 
-  it('forwards the name filter to the client', async () => {
-    client.getEpisodes.mockResolvedValue(episodes);
+  it('returns the detail with characters sorted by name, whatever order the source keeps', async () => {
+    const detail: EpisodeDetail = {
+      ...pilot,
+      characters: [
+        character(1, 'Rick Sanchez'),
+        character(38, 'Beth Smith'),
+        character(2, 'Morty Smith'),
+        character(35, 'Bepisian'),
+      ],
+    };
+    source.getEpisodeDetail.mockResolvedValue(detail);
 
-    await service.list(2, 'rick');
+    const result = await service.detail(1);
 
-    expect(client.getEpisodes).toHaveBeenCalledWith(2, 'rick');
-  });
-
-  it('returns an empty page when a search has no matches', async () => {
-    client.getEpisodes.mockRejectedValue(new NotFoundException());
-
-    const page = await service.list(1, 'nothing');
-
-    expect(page).toEqual({
-      info: { count: 0, pages: 0, currentPage: 1, hasNext: false, hasPrev: false },
-      results: [],
-    });
-  });
-
-  it('keeps the 404 for a search page past the last one', async () => {
-    client.getEpisodes.mockRejectedValue(new NotFoundException());
-
-    await expect(service.list(2, 'rick')).rejects.toBeInstanceOf(NotFoundException);
-  });
-
-  it('keeps the 404 when the page itself does not exist', async () => {
-    client.getEpisodes.mockRejectedValue(new NotFoundException());
-
-    await expect(service.list(99)).rejects.toBeInstanceOf(NotFoundException);
-  });
-
-  it('fetches all characters of an episode in a single batch', async () => {
-    client.getEpisode.mockResolvedValue(episode);
-    client.getCharacters.mockResolvedValue(characters);
-
-    await service.detail(1);
-
-    expect(client.getCharacters).toHaveBeenCalledTimes(1);
-    expect(client.getCharacters).toHaveBeenCalledWith([1, 2, 35, 38]);
-  });
-
-  it('returns characters sorted by name', async () => {
-    client.getEpisode.mockResolvedValue(episode);
-    client.getCharacters.mockResolvedValue(characters);
-
-    const detail = await service.detail(1);
-
-    expect(detail.characterCount).toBe(4);
-    expect(detail.characters.map((c) => c.name)).toEqual([
+    expect(source.getEpisodeDetail).toHaveBeenCalledWith(1);
+    expect(result.characters.map((c) => c.name)).toEqual([
       'Bepisian',
       'Beth Smith',
       'Morty Smith',
       'Rick Sanchez',
     ]);
+    expect(detail.characters[0].name).toBe('Rick Sanchez');
   });
 });

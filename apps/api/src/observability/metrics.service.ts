@@ -28,6 +28,12 @@ export class MetricsService {
     registers: [this.registry],
   });
 
+  readonly upstreamRequestsQueued = new Counter({
+    name: 'upstream_requests_queued_total',
+    help: 'Requests to the Rick and Morty API that waited for a free slot',
+    registers: [this.registry],
+  });
+
   constructor() {
     collectDefaultMetrics({ register: this.registry });
   }

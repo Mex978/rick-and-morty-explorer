@@ -12,13 +12,16 @@ import characters from '../fixtures/characters.json';
 import episode from '../fixtures/episode.json';
 import { MetricsService } from '../../src/observability/metrics.service';
 import { RickAndMortyClient } from '../../src/rick-and-morty/rick-and-morty.client';
+import { Semaphore } from '../../src/rick-and-morty/semaphore';
 
 const baseUrl = 'https://rickandmortyapi.com/api';
 
 describe('RickAndMortyClient', () => {
+  const metrics = new MetricsService();
   const client = new RickAndMortyClient(
     new HttpService(axios.create({ baseURL: baseUrl, timeout: 100 })),
-    new MetricsService(),
+    metrics,
+    new Semaphore(2),
   );
 
   beforeAll(() => nock.disableNetConnect());
@@ -121,5 +124,25 @@ describe('RickAndMortyClient', () => {
 
     expect(error).toBeInstanceOf(BadGatewayException);
     expect(error.cause).toMatchObject({ response: { status: 500 } });
+  });
+
+  it('keeps at most the configured number of upstream calls in flight and counts the ones that waited', async () => {
+    let inFlight = 0;
+    let peak = 0;
+    nock(baseUrl)
+      .get(/\/episode\/\d+/)
+      .times(5)
+      .reply(() => {
+        inFlight += 1;
+        peak = Math.max(peak, inFlight);
+        return new Promise((resolve) =>
+          setTimeout(() => ((inFlight -= 1), resolve([200, episode])), 20),
+        );
+      });
+
+    await Promise.all([1, 2, 3, 4, 5].map((id) => client.getEpisode(id)));
+
+    expect(peak).toBe(2);
+    expect(await metrics.registry.metrics()).toContain('upstream_requests_queued_total 3');
   });
 });

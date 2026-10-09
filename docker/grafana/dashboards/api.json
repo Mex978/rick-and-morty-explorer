@@ -214,6 +214,36 @@
           "legendFormat": "heap used"
         }
       ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Upstream calls queued (per minute)",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(upstream_requests_queued_total[1m]))",
+          "legendFormat": "queued"
+        }
+      ],
+      "description": "Calls to the Rick and Morty API that had to wait for one of the UPSTREAM_CONCURRENCY slots. A spike here is a burst the cap turned into a short wait instead of a 429."
     }
   ]
 }

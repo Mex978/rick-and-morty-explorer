@@ -7,9 +7,9 @@ import {
   toCharacter,
   toEpisode,
   toPaginated,
-} from '../../src/episodes/episodes.mapper';
+} from '../../src/rick-and-morty/rick-and-morty.mapper';
 
-describe('episodes mapper', () => {
+describe('rick and morty mapper', () => {
   it('maps a raw episode to the public contract', () => {
     expect(toEpisode(episode)).toEqual({
       id: 1,
