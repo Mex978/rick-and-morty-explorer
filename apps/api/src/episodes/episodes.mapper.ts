@@ -48,5 +48,7 @@ export function toPaginated<TRaw, T>(
 }
 
 export function characterIdsFrom(urls: string[]): number[] {
-  return urls.map((url) => Number(url.slice(url.lastIndexOf('/') + 1)));
+  return urls
+    .map((url) => Number(url.slice(url.lastIndexOf('/') + 1)))
+    .filter((id) => Number.isInteger(id) && id > 0);
 }

@@ -90,6 +90,10 @@ describe('GET /api/v1/episodes', () => {
     await request(app.getHttpServer()).get(`/api/v1/episodes?${query}`).expect(400);
   });
 
+  it.each(['abc', '0', '-1', '1.5'])('returns 400 for the invalid id %s', async (id) => {
+    await request(app.getHttpServer()).get(`/api/v1/episodes/${id}`).expect(400);
+  });
+
   it('does not mark error responses as cacheable', async () => {
     nock(upstream).get('/episode/999').reply(404, { error: 'Episode not found' });
 

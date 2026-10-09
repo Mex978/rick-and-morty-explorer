@@ -40,6 +40,17 @@ describe('episodes mapper', () => {
     expect(characterIdsFrom(episode.characters)).toEqual([1, 2, 35, 38]);
   });
 
+  it('drops urls that do not end in a positive id instead of asking the upstream for them', () => {
+    expect(
+      characterIdsFrom([
+        'https://rickandmortyapi.com/api/character/1',
+        'https://rickandmortyapi.com/api/character/',
+        'https://rickandmortyapi.com/api/character/abc',
+        'https://rickandmortyapi.com/api/character/0',
+      ]),
+    ).toEqual([1]);
+  });
+
   it('maps pagination links to flags', () => {
     const page = toPaginated(episodes, 1, (raw: RawEpisode) => raw.id);
 
