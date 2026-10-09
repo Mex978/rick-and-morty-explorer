@@ -14,6 +14,11 @@ const config: NextConfig = {
   logging: {
     fetches: { fullUrl: true },
   },
+  // Keeps visited pages in the client router cache for a minute, so going back to an episode is instant
+  // instead of showing its loading state again. The content never changes, so a minute of staleness costs nothing.
+  experimental: {
+    staleTimes: { dynamic: 60 },
+  },
 };
 
 export default withNextIntl(config);

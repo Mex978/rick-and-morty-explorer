@@ -45,8 +45,7 @@ export function EpisodesLayout({ query, seasons, pagination }: EpisodesProps) {
             <Grid>
               {episodes.map((episode) => (
                 <Card key={episode.id}>
-                  {/* Prefetching every visible card would render ~20 details at once and trip the upstream rate limit. */}
-                  <Link href={`/episodes/${episode.id}`} prefetch={false}>
+                  <Link href={`/episodes/${episode.id}`}>
                     <Code>{episode.code}</Code>
                     <Name>{episode.name}</Name>
                     <Meta>{formatAirDate(episode.airDate, format)}</Meta>
