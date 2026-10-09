@@ -29,16 +29,16 @@ The browser only ever talks to Next.js. Next.js fetches from the BFF on the serv
 
 ## Stack
 
-| Layer         | Choice                                                                        |
-| ------------- | ----------------------------------------------------------------------------- |
-| Web           | Next.js 16 (App Router), styled-components, next-intl                         |
-| API           | NestJS 11 as a backend for frontend                                           |
-| Language      | TypeScript end to end, shared contracts in `packages/types`                   |
-| Monorepo      | pnpm workspaces, Turborepo                                                    |
-| Tests         | Jest (api), Vitest + Testing Library (web), Playwright (e2e)                  |
-| CI            | GitHub Actions                                                                |
-| Observability | prom-client and Terminus in the api; Prometheus and Grafana in Docker Compose |
-| Containers    | Docker multi-stage builds pruned with Turborepo, Docker Compose               |
+| Layer         | Choice                                                                              |
+| ------------- | ----------------------------------------------------------------------------------- |
+| Web           | Next.js 16 (App Router), styled-components, next-intl                               |
+| API           | NestJS 11 as a backend for frontend                                                 |
+| Language      | TypeScript end to end, shared contracts in `packages/types`                         |
+| Monorepo      | pnpm workspaces, Turborepo                                                          |
+| Tests         | Jest (api), Vitest + Testing Library (web), Playwright (e2e)                        |
+| CI            | GitHub Actions                                                                      |
+| Observability | Prometheus client and Terminus in the api; Prometheus and Grafana in Docker Compose |
+| Containers    | Docker multi-stage builds pruned with Turborepo, Docker Compose                     |
 
 ## Getting started
 
