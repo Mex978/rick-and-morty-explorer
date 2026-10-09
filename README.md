@@ -1,15 +1,25 @@
 # Rick and Morty Explorer
 
-Browse and search the episodes of Rick and Morty and see the characters of each one in alphabetical order, on top of the public [Rick and Morty API](https://rickandmortyapi.com/documentation). Available in pt-BR and en, light and dark.
+Browse and search the episodes of Rick and Morty and see the characters of each one in alphabetical order, built on the public [Rick and Morty API](https://rickandmortyapi.com/documentation). Available in Portuguese and English, light and dark.
+
+```
+browser ──▶ Next.js (server components) ──▶ NestJS BFF ──▶ rickandmortyapi.com
+              renders HTML, caches data     batches, sorts,
+              per URL for one hour          caches in memory
+```
+
+The browser only ever talks to Next.js. Next.js fetches from the BFF on the server, and the BFF is the single place that knows the upstream exists.
 
 ## Stack
 
-- Next.js 16 (App Router) with styled-components and next-intl
-- NestJS 11 as a backend for frontend over the public API
-- TypeScript end to end, with shared contracts in `packages/types`
-- pnpm workspaces and Turborepo
-- Jest (api), Vitest and Testing Library (web), Playwright (e2e)
-- GitHub Actions
+| Layer    | Choice                                                       |
+| -------- | ------------------------------------------------------------ |
+| Web      | Next.js 16 (App Router), styled-components, next-intl        |
+| API      | NestJS 11 as a backend for frontend                          |
+| Language | TypeScript end to end, shared contracts in `packages/types`  |
+| Monorepo | pnpm workspaces, Turborepo                                   |
+| Tests    | Jest (api), Vitest + Testing Library (web), Playwright (e2e) |
+| CI       | GitHub Actions                                               |
 
 ## Running locally
 
@@ -17,70 +27,90 @@ Requires Node 22 or newer (`.nvmrc` pins 24, which CI uses) and pnpm 10.
 
 ```bash
 pnpm install
-cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.example apps/web/.env
 pnpm dev
 ```
 
-The `.env` files are optional: every variable has a working default. The web app runs on http://localhost:3000 and the API on http://localhost:3001. The browser never calls the API directly, so it has no CORS setup: only the Next.js server talks to it.
+The web app runs on http://localhost:3000 and the API on http://localhost:3001. Every variable has a working default, so `.env` files are optional; copy `apps/api/.env.example` or `apps/web/.env.example` to `.env` next to it when you need to change one.
+
+| Variable                 | App | Default                           | Purpose                                |
+| ------------------------ | --- | --------------------------------- | -------------------------------------- |
+| `PORT`                   | api | `3001`                            | HTTP port                              |
+| `RICK_AND_MORTY_API_URL` | api | `https://rickandmortyapi.com/api` | upstream base URL                      |
+| `CACHE_TTL_SECONDS`      | api | `3600`                            | in-memory cache and `Cache-Control`    |
+| `API_URL`                | web | `http://localhost:3001`           | where the Next.js server finds the BFF |
+| `SITE_URL`               | web | `http://localhost:3000`           | base for canonical and hreflang links  |
 
 ## Scripts
 
-| Script           | What it does                                                            |
-| ---------------- | ----------------------------------------------------------------------- |
-| `pnpm dev`       | starts api and web in watch mode                                        |
-| `pnpm test`      | unit and integration tests of api and web                               |
-| `pnpm e2e`       | builds everything and runs Playwright against the real API              |
-| `pnpm lint`      | ESLint on every package                                                 |
-| `pnpm format`    | Prettier on the whole repo; `format:check` only verifies and runs in CI |
-| `pnpm typecheck` | `tsc --noEmit` on every package                                         |
-| `pnpm build`     | production builds                                                       |
+| Script           | What it does                                            |
+| ---------------- | ------------------------------------------------------- |
+| `pnpm dev`       | api and web in watch mode                               |
+| `pnpm test`      | unit and integration tests with coverage thresholds     |
+| `pnpm e2e`       | production builds, then Playwright against the real API |
+| `pnpm lint`      | ESLint on every package                                 |
+| `pnpm format`    | Prettier on the whole repo (`format:check` runs in CI)  |
+| `pnpm typecheck` | `tsc --noEmit` on every package                         |
+| `pnpm build`     | production builds                                       |
+
+Commits follow Conventional Commits, checked by commitlint; staged files are formatted on commit.
 
 ## Project structure
 
 ```
 apps/
-  api/          NestJS: episodes module + rick-and-morty client, Jest tests
-  web/          Next.js: features/{episodes,episode}, i18n, Vitest tests
+  api/
+    src/episodes/        controller, service, pure mapper and their tests
+    src/rick-and-morty/  the only code that knows the upstream exists
+    test/                integration test booting the whole app
+  web/
+    src/app/[locale]/    routes, metadata, loading and error states
+    src/features/        episodes (list + search) and episode (detail)
+    src/components/      Header, Pagination, SearchField, ThemeToggle
+    src/i18n/            routing, request config, navigation, metadata
+    src/messages/        pt-BR.json, en.json
 packages/
-  types/        Episode, EpisodeDetail, Character, Paginated
-  tsconfig/     shared tsconfig presets
-  eslint-config/
-e2e/            Playwright specs
+  types/                 Episode, EpisodeDetail, Character, Paginated
+  tsconfig/, eslint-config/
+e2e/                     Playwright specs
 .github/workflows/ci.yml
 ```
 
-Each web feature follows the same shape: `index.tsx` is the smart component (an async server component that fetches and prepares data), `data.ts` holds its props types and `Layout/` is the dumb client component with its styled-components.
+Each web feature has the same shape: `index.tsx` is the smart component (an async server component that fetches and prepares data), `data.ts` holds its props and `Layout/` is the dumb client component with its styled-components. Nothing in `components/` is used by fewer than two features.
 
 ## API
 
-Base path: `/api/v1`
+Base path: `/api/v1`. Successful responses carry `Cache-Control: public, max-age=<CACHE_TTL_SECONDS>`; errors are never marked cacheable.
 
-| Route                            | Response             | Notes                                                                                                                                                                                                     |
-| -------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /episodes?page=1&name=rick` | `Paginated<Episode>` | `name` (up to 100 chars) filters by episode name and answers an empty page when nothing matches; 400 when `page` is not a positive integer or a param is repeated; 404 when the page is past the last one |
-| `GET /episodes/:id`              | `EpisodeDetail`      | characters sorted by name, 404 when the episode does not exist                                                                                                                                            |
+| Route                            | Response             |
+| -------------------------------- | -------------------- |
+| `GET /episodes?page=1&name=rick` | `Paginated<Episode>` |
+| `GET /episodes/:id`              | `EpisodeDetail`      |
 
-Successful responses carry `Cache-Control: public, max-age=<CACHE_TTL_SECONDS>`; errors are never marked cacheable.
+- `page` must be a positive integer and `name` at most 100 characters; anything else, including a repeated parameter, is a 400.
+- A `name` with no matches returns an empty page; a `page` past the last one is a 404.
+- `EpisodeDetail` carries the characters already sorted by name; the frontend never sorts.
 
 ## Decisions
 
-- A BFF exists because the public API returns character URLs inside an episode, not the characters. Extracting the ids, batching, sorting and caching belong in one place, and that keeps the frontend free of orchestration.
-- Characters are fetched in a single batch request (`/character/1,2,3`), so an episode with 60 characters costs 2 upstream calls instead of 61.
-- Responses are cached in memory with Nest's `CacheInterceptor` for `CACHE_TTL_SECONDS` (one hour by default) in an LRU store capped at 500 entries, because cache keys include user input. The content never changes, so this is safe. Redis would only make sense with more than one API instance.
-- Smart/dumb components map onto server/client components: the smart one fetches on the server, the dumb one only renders and translates.
-- next-intl handles routing (`/pt-BR`, `/en`), messages, plurals and date formatting. A test guarantees both locales have the same keys.
-- There is no data fetching library on the client. Server components call the BFF with `fetch` and Next's data cache, and the `Cache-Control` header covers the browser.
-- Episode search lives in the URL (`?q=`). Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is shareable as a link. Characters are filtered on the client instead, because the whole episode is already on the page.
-- Themes are CSS variables toggled by a `data-theme` attribute, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme, switching re-renders nothing, and browsers with the View Transitions API reveal the new theme in a circle from the click. Reading the cookie makes every page dynamic, which is fine here: caching happens at the data layer, not at the HTML.
+- **A BFF, because the upstream returns character URLs, not characters.** Extracting ids, batching, sorting and caching belong in one place, and that keeps the frontend free of orchestration.
+- **One batch request per episode.** `/character/1,2,3` turns an episode with 60 characters into 2 upstream calls instead of 61.
+- **In-memory cache, bounded.** Nest's `CacheInterceptor` keeps responses for `CACHE_TTL_SECONDS` in an LRU store capped at 500 entries, because cache keys include user input. The content never changes, so this is safe. Redis would only make sense with more than one API instance.
+- **Smart/dumb maps onto server/client components.** The smart one fetches on the server, the dumb one only renders and translates. No data fetching library on the client: server components call the BFF with `fetch` and Next's data cache, and the `Cache-Control` header covers the browser.
+- **Search lives in the URL.** Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is a shareable link. Characters are filtered on the client because the whole episode is already on the page.
+- **Themes are CSS variables.** A `data-theme` attribute toggles them, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme and switching re-renders nothing. Browsers with the View Transitions API reveal the new theme in a circle from the click. Reading the cookie makes every page dynamic, which is fine: caching happens at the data layer, not at the HTML.
+- **next-intl for routing, messages, plurals and dates.** A test guarantees both locales have the same keys and the same ICU arguments.
 
 ## Testing
 
-- `apps/api`: unit tests for the mapper, the service (sorting, single batch call) and the HTTP client (error mapping with nock), plus an integration test that boots the whole app through the same setup as `main.ts` and checks the routes, query validation, cache headers and cache behaviour.
-- `apps/web`: component tests for both layouts (including search and the character filter), the header, the pagination and the theme toggle, tests for the smart components with the API client mocked, the API client itself with `fetch` stubbed (one test in `features/episode` deliberately goes through the real client as an integration check), and key and ICU argument parity between locales.
-- `e2e`: eight Playwright tests against the real API covering the list, pagination, search, the sorted character list, the character filter, the language switch and the theme switch. The CI job is blocking, with two retries to absorb public API hiccups; the Playwright report is uploaded on failure.
+| Layer | Tool                    | What it covers                                                                                                                                                                      |
+| ----- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping, env validation, and an integration test booting the app through the same setup as `main.ts`                |
+| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity |
+| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, against the real API                                                                      |
 
-`pnpm test` also collects coverage and fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds apply to everything except the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by the Playwright suite instead.
+`pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
+
+The e2e job in CI is blocking, with two retries to absorb public API hiccups, and runs serially because the upstream rate-limits bursts. The Playwright report is uploaded on failure.
 
 ```bash
 pnpm test
