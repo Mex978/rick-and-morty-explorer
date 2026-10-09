@@ -1,8 +1,13 @@
-import type { RawCharacter, RawEpisode } from '../rick-and-morty/rick-and-morty.types';
-import characters from '../../test/fixtures/characters.json';
-import episode from '../../test/fixtures/episode.json';
-import episodes from '../../test/fixtures/episodes.json';
-import { characterIdsFrom, toCharacter, toEpisode, toPaginated } from './episodes.mapper';
+import type { RawCharacter, RawEpisode } from '../../src/rick-and-morty/rick-and-morty.types';
+import characters from '../fixtures/characters.json';
+import episode from '../fixtures/episode.json';
+import episodes from '../fixtures/episodes.json';
+import {
+  characterIdsFrom,
+  toCharacter,
+  toEpisode,
+  toPaginated,
+} from '../../src/episodes/episodes.mapper';
 
 describe('episodes mapper', () => {
   it('maps a raw episode to the public contract', () => {
