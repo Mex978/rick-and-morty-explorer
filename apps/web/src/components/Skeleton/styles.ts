@@ -5,8 +5,14 @@ const shimmer = keyframes`
   to { background-position: -200% 0; }
 `;
 
-export const SkeletonBlock = styled.span<{ $width?: string; $height?: string; $radius?: string }>`
+export const SkeletonBlock = styled.span<{
+  $width?: string;
+  $height?: string;
+  $radius?: string;
+  $center?: boolean;
+}>`
   display: block;
+  justify-self: ${({ $center }) => ($center ? 'center' : 'stretch')};
   width: ${({ $width }) => $width ?? '100%'};
   height: ${({ $height }) => $height ?? '1em'};
   border-radius: ${({ $radius, theme }) => $radius ?? theme.radius};
