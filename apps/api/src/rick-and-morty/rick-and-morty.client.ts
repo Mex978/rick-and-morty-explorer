@@ -5,6 +5,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { isAxiosError } from 'axios';
 import type { AxiosError } from 'axios';
@@ -13,9 +14,8 @@ import { firstValueFrom, retry, throwError, timer } from 'rxjs';
 import { MetricsService } from '../observability/metrics.service';
 import type { RawCharacter, RawEpisode, RawPaginated } from './rick-and-morty.types';
 
-// The public API rate limits bursts (429) and has the occasional 5xx; a short retry absorbs both without
-// hiding a real outage, since the timeout still bounds every attempt.
-const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+// Transient 5xx are retried briefly. A 429 is not: the upstream asks for ~10s, longer than a page should wait.
+const RETRYABLE_STATUSES = new Set([502, 503, 504]);
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
 
@@ -89,6 +89,9 @@ export class RickAndMortyClient {
 
     this.logger.error(`Upstream request to ${path} failed: ${error.message}`);
 
+    if (error.response?.status === 429) {
+      return new ServiceUnavailableException('Upstream rate limit reached', { cause: error });
+    }
     if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
       return new GatewayTimeoutException('Upstream request timed out', { cause: error });
     }

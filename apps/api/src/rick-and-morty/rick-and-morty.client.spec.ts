@@ -1,5 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { BadGatewayException, GatewayTimeoutException, NotFoundException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  GatewayTimeoutException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import axios from 'axios';
 import nock from 'nock';
 
@@ -77,12 +82,19 @@ describe('RickAndMortyClient', () => {
     await expect(client.getEpisode(1)).rejects.toBeInstanceOf(GatewayTimeoutException);
   });
 
-  it('retries when the upstream rate limits and succeeds on the next attempt', async () => {
-    nock(baseUrl).get('/episode/1').reply(429, { error: 'Too many requests' });
+  it('retries a transient upstream failure and succeeds on the next attempt', async () => {
+    nock(baseUrl).get('/episode/1').reply(503);
     nock(baseUrl).get('/episode/1').reply(200, episode);
 
     await expect(client.getEpisode(1)).resolves.toMatchObject({ id: 1 });
     expect(nock.pendingMocks()).toEqual([]);
+  });
+
+  it('maps a rate limit to 503 without retrying', async () => {
+    nock(baseUrl).get('/episode/1').times(2).reply(429, { error: 'Too many requests' });
+
+    await expect(client.getEpisode(1)).rejects.toBeInstanceOf(ServiceUnavailableException);
+    expect(nock.pendingMocks()).toHaveLength(1);
   });
 
   it('gives up after the retries are exhausted', async () => {
