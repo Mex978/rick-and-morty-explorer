@@ -45,7 +45,8 @@
     "label": "Pagination",
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {current} of {total}"
+    "page": "Page {current} of {total}",
+    "goTo": "Go to page {page}"
   },
   "loading": "Loading...",
   "error": {

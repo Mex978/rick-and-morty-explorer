@@ -77,7 +77,7 @@ export function EpisodeLayout({ episode }: EpisodeProps) {
         onChange={(event) => search(event.target.value)}
       />
       {matches.length === 0 && <Empty>{t('empty', { query })}</Empty>}
-      <Grid>
+      <Grid aria-label={t('characters')}>
         {characters.map((character, index) => (
           <CharacterCard key={character.id} character={character} eager={index < EAGER_AVATARS} />
         ))}

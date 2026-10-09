@@ -57,3 +57,14 @@ test('does not fetch episode details just by showing the list', async ({ page })
 
   expect(detailRequests).toEqual([]);
 });
+
+test('jumps to a page by its number', async ({ page }) => {
+  await page.goto('/pt-BR');
+
+  await page.getByRole('link', { name: 'Ir para a página 2' }).click();
+
+  await expect(page).toHaveURL(/page=2$/);
+  await expect(
+    page.getByRole('navigation', { name: 'Paginação' }).locator('[aria-current="page"]'),
+  ).toHaveText('2');
+});

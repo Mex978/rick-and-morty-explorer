@@ -5,8 +5,11 @@ import { episodeDetail, manyCharacters } from '../../fixtures';
 import { act, cleanup, fireEvent, render, screen, within } from '../../render';
 
 const filter = () => screen.getByRole('searchbox', { name: 'Filtrar personagens' });
+const grid = () => screen.getByRole('list', { name: 'Personagens' });
 const names = () =>
-  screen.getAllByRole('listitem').map((item) => within(item).getByRole('img').getAttribute('alt'));
+  within(grid())
+    .getAllByRole('listitem')
+    .map((item) => within(item).getByRole('img').getAttribute('alt'));
 
 describe('EpisodeLayout', () => {
   it('renders the episode header with a formatted air date', () => {
@@ -42,7 +45,7 @@ describe('EpisodeLayout', () => {
 
     fireEvent.change(filter(), { target: { value: 'jerry' } });
 
-    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    expect(within(grid()).queryAllByRole('listitem')).toHaveLength(0);
     expect(screen.getByText('Nenhum personagem encontrado para “jerry”.')).toBeInTheDocument();
   });
 });
@@ -158,6 +161,15 @@ describe('EpisodeLayout pagination', () => {
 
     expect(status()).toHaveTextContent('Página 1 de 3');
     expect(names()).toHaveLength(10);
+  });
+
+  it('jumps straight to a chosen page', () => {
+    render(<EpisodeLayout episode={thirty} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ir para a página 3' }));
+
+    expect(names()[0]).toBe('Clone 21');
+    expect(status()).toHaveTextContent('Página 3 de 3');
   });
 
   it('hides the controls with the empty state', () => {
