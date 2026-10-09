@@ -78,12 +78,12 @@ The API needs `packages/types` built once (`pnpm dev` and `pnpm build` do it thr
 
 ### 3. Open
 
-| What    | URL                                                              |
-| ------- | ---------------------------------------------------------------- |
-| Web app | http://localhost:3000 (redirects to `/pt-BR`; `/en` for English) |
-| API     | http://localhost:3001/api/v1/episodes                            |
-| Health  | http://localhost:3001/health                                     |
-| Metrics | http://localhost:3001/metrics                                    |
+| What    | URL                                                                                                      |
+| ------- | -------------------------------------------------------------------------------------------------------- |
+| Web app | http://localhost:3000 (redirects to `/pt-BR`; `/en` for English)                                         |
+| API     | http://localhost:3001/api/v1/episodes                                                                    |
+| Health  | http://localhost:3001/health (liveness) and http://localhost:3001/health/ready (checks the upstream too) |
+| Metrics | http://localhost:3001/metrics                                                                            |
 
 ### Environment variables
 
@@ -175,7 +175,7 @@ pnpm --filter @rma/web exec vitest
 | ----- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
 | web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                              |
-| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch                                                                                                                                         |
+| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404                                                                                                                         |
 
 `pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
 
@@ -211,10 +211,11 @@ apps/
     Dockerfile
   web/
     src/app/[locale]/    routes, metadata, skeleton loading and error states
-    src/features/        episodes (list + search) and episode (detail)
+    src/features/        episodes (list + search) and episode (detail), each with its hook
     src/components/      Header, Pagination, SearchField, Skeleton, ThemeToggle
     src/i18n/            routing, request config, navigation, metadata
     src/messages/        pt-BR.json, en.json
+    test/                Vitest suites mirroring src, plus render helper and fixtures
     Dockerfile
 packages/
   types/                 Episode, EpisodeDetail, Character, Paginated
@@ -225,7 +226,7 @@ docker-compose.yml
 .github/workflows/ci.yml
 ```
 
-Each web feature has the same shape: `index.tsx` is the smart component (an async server component that fetches and prepares data), `data.ts` holds its props and `Layout/` is the dumb client component with its styled-components. Nothing in `components/` is used by fewer than two features.
+Each web feature has the same shape: `index.tsx` is the smart component (an async server component that fetches and prepares data), `data.ts` holds its props, `Layout/` is the dumb client component with its styled-components, and behaviour with state lives in a hook next to them (`useEpisodeSearch`, `useAvatar`). `components/` holds what the app shell or more than one feature shares. Web tests live in `apps/web/test`, mirroring `src`, so route and feature folders contain only code.
 
 ## API
 
@@ -237,7 +238,7 @@ Base path: `/api/v1`. Successful responses carry `Cache-Control: public, max-age
 | `GET /episodes/:id`              | `EpisodeDetail`      |
 
 - `page` must be a positive integer and `name` at most 100 characters; anything else, including a repeated parameter, is a 400.
-- A `name` with no matches returns an empty page; a `page` past the last one is a 404.
+- A `name` with no matches returns an empty first page; any `page` past the last one, with or without `name`, is a 404.
 - `EpisodeDetail` carries the characters already sorted by name; the frontend never sorts.
 
 Try it:
@@ -258,7 +259,7 @@ Everything runs locally; no external service is involved.
 
 | Endpoint   | What it gives                                                                                                                                                                                               |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/health`  | Terminus check: pings the upstream and watches heap usage; 503 when either is down, so a container orchestrator can act on it                                                                               |
+| `/health`  | Liveness: heap usage of this process only, so an upstream outage never gets a healthy container restarted. `/health/ready` adds a ping to the upstream and is the one to gate traffic on                    |
 | `/metrics` | Prometheus text format: `http_request_duration_seconds` by method, route pattern and status; `cache_events_total` by hit or miss; `upstream_request_duration_seconds` by operation; Node.js default metrics |
 
 Every response carries an `x-request-id` (reused when the caller sends one), and each request is logged with method, url, status, duration and cache result. With `NODE_ENV=production` the Nest logger writes JSON lines, ready for any log collector. Routes are logged by pattern (`/api/v1/episodes/:id`) so metric cardinality stays bounded whatever the ids or search terms.
@@ -270,10 +271,10 @@ The Grafana dashboard provisioned by Docker Compose shows requests per second an
 - **A BFF, because the upstream returns character URLs, not characters.** Extracting ids, batching, sorting and caching belong in one place, and that keeps the frontend free of orchestration.
 - **One batch request per episode.** `/character/1,2,3` turns an episode with 60 characters into 2 upstream calls instead of 61.
 - **In-memory cache, bounded.** Nest's `CacheInterceptor` keeps responses for `CACHE_TTL_SECONDS` in an LRU store capped at 500 entries, because cache keys include user input. The content never changes, so this is safe. Redis would only make sense with more than one API instance.
-- **Smart/dumb maps onto server/client components.** The smart one fetches on the server, the dumb one only renders and translates. No data fetching library on the client: server components call the BFF with `fetch` and Next's data cache, and the `Cache-Control` header covers the browser.
+- **Smart/dumb maps onto server/client components.** The smart one fetches on the server, the dumb one only renders and translates. No data fetching library on the client: server components call the BFF with `fetch` and Next's data cache. The BFF's `Cache-Control` header is for anything that talks to it directly, such as a CDN or another consumer.
 - **Search lives in the URL.** Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is a shareable link. Characters are filtered on the client because the whole episode is already on the page.
 - **Themes are CSS variables.** A `data-theme` attribute toggles them, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme and switching re-renders nothing. Browsers with the View Transitions API reveal the new theme in a circle from the click. Reading the cookie makes every page dynamic, which is fine: caching happens at the data layer, not at the HTML.
-- **The public API is treated as a shared, rate-limited resource.** The BFF retries 429 and transient 5xx twice with a short backoff. Each route has its own `loading.tsx` skeleton, which also bounds what a link prefetch fetches: the skeleton, never the data, so twenty visible cards do not turn into twenty upstream calls.
+- **The public API is treated as a shared, rate-limited resource.** The BFF retries transient 5xx twice with a short backoff and answers 503 on a 429 instead of waiting out the upstream's ten-second retry window. Each route has its own `loading.tsx` skeleton, which also bounds what a link prefetch fetches: the skeleton, never the data, so twenty visible cards do not turn into twenty upstream calls.
 - **Avatars load straight from the upstream CDN.** `next/image` still handles sizing, lazy loading and the `priority` preload of the first row, but with `unoptimized` set: optimizing a 300px JPEG saves nothing, and routing every user's image traffic through one server IP is exactly what the upstream rate-limits, which showed up as broken images on refresh. A page with 60 avatars is still a burst for the CDN, so an avatar that fails is retried after a few seconds and then replaced by a placeholder with the character's initial.
 - **Visited pages stay in the client router cache for a minute** (`staleTimes.dynamic`), so going back to an episode is instant instead of showing its skeleton again. The flag is still marked experimental by Next.js; the content never changes, so a minute of staleness is free.
 - **next-intl for routing, messages, plurals and dates.** A test guarantees both locales have the same keys and the same ICU arguments.
