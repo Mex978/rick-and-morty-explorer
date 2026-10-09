@@ -6,7 +6,8 @@ import type { Observable } from 'rxjs';
 
 import type { Env } from '../config/env';
 
-// Not @Header: that would also mark error responses as publicly cacheable.
+// Nest's @Header decorator runs before the handler, so it would stamp 4xx and 5xx responses too.
+// Setting the header inside the stream makes only successful responses cacheable.
 @Injectable()
 export class CacheControlInterceptor implements NestInterceptor {
   constructor(private readonly config: ConfigService<Env, true>) {}
