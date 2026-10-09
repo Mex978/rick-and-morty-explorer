@@ -30,11 +30,13 @@ services:
     image: prom/prometheus:v3.5.0
     ports:
       - '9090:9090'
-    # A compose config rather than a bind mount: its content is part of the service definition,
-    # so editing the file makes the next `up` recreate the container and Prometheus reread it.
-    configs:
-      - source: prometheus
-        target: /etc/prometheus/prometheus.yml
+    # Directory mounts survive files being rewritten; Prometheus rereads its config on its own.
+    command:
+      - --config.file=/etc/prometheus/config/prometheus.yml
+      - --config.auto-reload-interval=30s
+      - --storage.tsdb.path=/prometheus
+    volumes:
+      - ./docker/prometheus:/etc/prometheus/config:ro
     depends_on:
       - api
 
@@ -55,25 +57,9 @@ services:
       GF_HELP_ENABLED: 'false'
       GF_PROFILE_ENABLED: 'false'
       GF_ANALYTICS_REPORTING_ENABLED: 'false'
-    # Compose configs for the same reason as the prometheus one: an edit, or a git checkout that
-    # recreates the files, is applied by the next `up` instead of leaving the container looking at
-    # a mount that no longer exists.
-    configs:
-      - source: grafana-datasources
-        target: /etc/grafana/provisioning/datasources/prometheus.yml
-      - source: grafana-dashboard-provider
-        target: /etc/grafana/provisioning/dashboards/dashboards.yml
-      - source: grafana-dashboard
-        target: /var/lib/grafana/dashboards/api.json
+    # Grafana rereads the dashboards folder every few seconds; the datasource only at start.
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
-
-configs:
-  prometheus:
-    file: ./docker/prometheus/prometheus.yml
-  grafana-datasources:
-    file: ./docker/grafana/provisioning/datasources/prometheus.yml
-  grafana-dashboard-provider:
-    file: ./docker/grafana/provisioning/dashboards/dashboards.yml
-  grafana-dashboard:
-    file: ./docker/grafana/dashboards/api.json
