@@ -13,6 +13,9 @@ import { RequestLoggerMiddleware } from './request-logger.middleware';
 })
 export class ObservabilityModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestLoggerMiddleware).exclude('metrics', 'health').forRoutes('*path');
+    consumer
+      .apply(RequestLoggerMiddleware)
+      .exclude('metrics', 'health', 'health/ready')
+      .forRoutes('*path');
   }
 }
