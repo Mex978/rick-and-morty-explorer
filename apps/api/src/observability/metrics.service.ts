@@ -36,6 +36,10 @@ export class MetricsService {
 
   constructor() {
     collectDefaultMetrics({ register: this.registry });
+    // A labelled series only exists after its first increment, and Prometheus cannot see the
+    // increase of a series that is born at 1. Both outcomes start at zero so no event is lost.
+    this.cacheEvents.inc({ result: 'hit' }, 0);
+    this.cacheEvents.inc({ result: 'miss' }, 0);
   }
 
   recordRequest(request: {
