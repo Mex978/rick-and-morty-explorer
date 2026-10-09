@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 test('opens an episode and lists its characters in alphabetical order', async ({ page }) => {
   await page.goto('/pt-BR');

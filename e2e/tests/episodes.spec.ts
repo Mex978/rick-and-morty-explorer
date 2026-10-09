@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test';
 
 test('lists episodes grouped by season', async ({ page }) => {
   await page.goto('/');
