@@ -11,26 +11,26 @@ import episodes from './fixtures/episodes.json';
 
 const upstream = 'https://rickandmortyapi.com/api';
 
+let app: INestApplication;
+
+beforeAll(() => {
+  nock.disableNetConnect();
+  nock.enableNetConnect('127.0.0.1');
+});
+afterAll(() => nock.enableNetConnect());
+
+beforeEach(async () => {
+  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  app = setupApp(moduleRef.createNestApplication());
+  await app.init();
+});
+
+afterEach(async () => {
+  nock.cleanAll();
+  await app.close();
+});
+
 describe('GET /api/v1/episodes', () => {
-  let app: INestApplication;
-
-  beforeAll(() => {
-    nock.disableNetConnect();
-    nock.enableNetConnect('127.0.0.1');
-  });
-  afterAll(() => nock.enableNetConnect());
-
-  beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = setupApp(moduleRef.createNestApplication());
-    await app.init();
-  });
-
-  afterEach(async () => {
-    nock.cleanAll();
-    await app.close();
-  });
-
   it('lists episodes with pagination info', async () => {
     nock(upstream).get('/episode').query({ page: 1 }).reply(200, episodes);
 
@@ -64,6 +64,12 @@ describe('GET /api/v1/episodes', () => {
     const empty = await request(app.getHttpServer())
       .get('/api/v1/episodes?name=nothing')
       .expect(200);
+
+    nock(upstream)
+      .get('/episode')
+      .query({ page: 2, name: 'pilot' })
+      .reply(404, { error: 'There is nothing here' });
+    await request(app.getHttpServer()).get('/api/v1/episodes?name=pilot&page=2').expect(404);
 
     expect(found.body.results).toHaveLength(2);
     expect(empty.body).toEqual({
@@ -125,8 +131,14 @@ describe('GET /api/v1/episodes', () => {
       .set('x-request-id', 'abc-123')
       .expect(200);
 
+    const rejected = await request(app.getHttpServer())
+      .get('/api/v1/episodes')
+      .set('x-request-id', 'not valid <script>')
+      .expect(200);
+
     expect(generated.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
     expect(forwarded.headers['x-request-id']).toBe('abc-123');
+    expect(rejected.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it('serves repeated requests from cache without hitting the upstream', async () => {
@@ -138,44 +150,32 @@ describe('GET /api/v1/episodes', () => {
     expect(scope.isDone()).toBe(true);
     expect(nock.pendingMocks()).toEqual([]);
     expect(second.body.results).toHaveLength(2);
+    expect(second.headers['x-cache']).toBe('HIT');
+    expect(second.headers['cache-control']).toBe('public, max-age=3600');
   });
 });
 
 describe('operational endpoints', () => {
-  let app: INestApplication;
-
-  beforeAll(() => {
-    nock.disableNetConnect();
-    nock.enableNetConnect('127.0.0.1');
-  });
-  afterAll(() => nock.enableNetConnect());
-
-  beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = setupApp(moduleRef.createNestApplication());
-    await app.init();
-  });
-
-  afterEach(async () => {
-    nock.cleanAll();
-    await app.close();
-  });
-
-  it('reports healthy when the upstream answers', async () => {
-    nock(upstream).get('/episode/1').reply(200, episode);
-
+  it('reports the process alive without touching the upstream', async () => {
     const response = await request(app.getHttpServer()).get('/health').expect(200);
 
     expect(response.body.status).toBe('ok');
-    expect(Object.keys(response.body.info)).toEqual(['upstream', 'memory_heap']);
+    expect(Object.keys(response.body.info)).toEqual(['memory_heap']);
   });
 
-  it('reports unhealthy when the upstream is down', async () => {
+  it('reports ready when the upstream answers', async () => {
+    nock(upstream).get('/episode/1').reply(200, episode);
+
+    const response = await request(app.getHttpServer()).get('/health/ready').expect(200);
+
+    expect(Object.keys(response.body.info)).toEqual(['memory_heap', 'upstream']);
+  });
+
+  it('reports not ready when the upstream is down', async () => {
     nock(upstream).get('/episode/1').reply(503);
 
-    const response = await request(app.getHttpServer()).get('/health').expect(503);
+    const response = await request(app.getHttpServer()).get('/health/ready').expect(503);
 
-    expect(response.body.status).toBe('error');
     expect(response.body.error.upstream.status).toBe('down');
   });
 
