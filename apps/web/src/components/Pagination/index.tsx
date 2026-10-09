@@ -16,9 +16,17 @@ export function Pagination({ currentPage, totalPages, prevHref, nextHref }: Pagi
 
   return (
     <Nav aria-label={t('page', { current: currentPage, total: totalPages })}>
-      {prevHref ? <PageLink href={prevHref}>{t('previous')}</PageLink> : <PageButton disabled>{t('previous')}</PageButton>}
+      {prevHref ? (
+        <PageLink href={prevHref}>{t('previous')}</PageLink>
+      ) : (
+        <PageButton disabled>{t('previous')}</PageButton>
+      )}
       <Status>{t('page', { current: currentPage, total: totalPages })}</Status>
-      {nextHref ? <PageLink href={nextHref}>{t('next')}</PageLink> : <PageButton disabled>{t('next')}</PageButton>}
+      {nextHref ? (
+        <PageLink href={nextHref}>{t('next')}</PageLink>
+      ) : (
+        <PageButton disabled>{t('next')}</PageButton>
+      )}
     </Nav>
   );
 }

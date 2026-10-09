@@ -11,6 +11,8 @@ describe('validateEnv', () => {
 
   it('fails fast on an invalid value, naming the variable', () => {
     expect(() => validateEnv({ CACHE_TTL_SECONDS: '0' })).toThrow(/CACHE_TTL_SECONDS/);
-    expect(() => validateEnv({ RICK_AND_MORTY_API_URL: 'not a url' })).toThrow(/RICK_AND_MORTY_API_URL/);
+    expect(() => validateEnv({ RICK_AND_MORTY_API_URL: 'not a url' })).toThrow(
+      /RICK_AND_MORTY_API_URL/,
+    );
   });
 });

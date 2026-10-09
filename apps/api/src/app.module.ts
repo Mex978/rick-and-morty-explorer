@@ -19,7 +19,12 @@ const MAX_CACHED_RESPONSES = 500;
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) => {
         const ttl = config.get('CACHE_TTL_SECONDS') * 1000;
-        return { ttl, stores: [new Keyv({ store: new CacheableMemory({ ttl, lruSize: MAX_CACHED_RESPONSES }) })] };
+        return {
+          ttl,
+          stores: [
+            new Keyv({ store: new CacheableMemory({ ttl, lruSize: MAX_CACHED_RESPONSES }) }),
+          ],
+        };
       },
     }),
     EpisodesModule,

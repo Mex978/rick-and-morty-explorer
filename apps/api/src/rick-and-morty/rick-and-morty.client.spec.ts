@@ -10,14 +10,19 @@ import { RickAndMortyClient } from './rick-and-morty.client';
 const baseUrl = 'https://rickandmortyapi.com/api';
 
 describe('RickAndMortyClient', () => {
-  const client = new RickAndMortyClient(new HttpService(axios.create({ baseURL: baseUrl, timeout: 100 })));
+  const client = new RickAndMortyClient(
+    new HttpService(axios.create({ baseURL: baseUrl, timeout: 100 })),
+  );
 
   beforeAll(() => nock.disableNetConnect());
   afterEach(() => nock.cleanAll());
   afterAll(() => nock.enableNetConnect());
 
   it('requests the episodes page as a query param', async () => {
-    const scope = nock(baseUrl).get('/episode').query({ page: 2 }).reply(200, { info: {}, results: [] });
+    const scope = nock(baseUrl)
+      .get('/episode')
+      .query({ page: 2 })
+      .reply(200, { info: {}, results: [] });
 
     await client.getEpisodes(2);
 
@@ -25,7 +30,10 @@ describe('RickAndMortyClient', () => {
   });
 
   it('filters episodes by name when one is given', async () => {
-    const scope = nock(baseUrl).get('/episode').query({ page: 1, name: 'rick' }).reply(200, { info: {}, results: [] });
+    const scope = nock(baseUrl)
+      .get('/episode')
+      .query({ page: 1, name: 'rick' })
+      .reply(200, { info: {}, results: [] });
 
     await client.getEpisodes(1, 'rick');
 

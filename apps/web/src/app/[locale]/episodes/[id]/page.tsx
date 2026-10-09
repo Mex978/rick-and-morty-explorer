@@ -17,7 +17,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     throw error;
   });
 
-  return episode ? { title: `${episode.code} · ${episode.name}`, alternates: alternatesFor(locale, `/episodes/${id}`) } : {};
+  return episode
+    ? {
+        title: `${episode.code} · ${episode.name}`,
+        alternates: alternatesFor(locale, `/episodes/${id}`),
+      }
+    : {};
 }
 
 export default async function EpisodePage({ params }: Props) {

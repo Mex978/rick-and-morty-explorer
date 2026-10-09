@@ -34,7 +34,9 @@ describe('ThemeToggle', () => {
 
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(animate).toHaveBeenCalledWith(
-      { clipPath: [expect.stringMatching(/^circle\(0px at /), expect.stringMatching(/^circle\(\d/)] },
+      {
+        clipPath: [expect.stringMatching(/^circle\(0px at /), expect.stringMatching(/^circle\(\d/)],
+      },
       expect.objectContaining({ pseudoElement: '::view-transition-new(root)' }),
     );
   });
@@ -42,7 +44,9 @@ describe('ThemeToggle', () => {
   it('still applies the theme when the browser skips the transition', async () => {
     document.startViewTransition = vi.fn((update: () => void) => {
       update();
-      return { ready: Promise.reject(new DOMException('skipped', 'InvalidStateError')) } as ViewTransition;
+      return {
+        ready: Promise.reject(new DOMException('skipped', 'InvalidStateError')),
+      } as ViewTransition;
     });
     render(<ThemeToggle />);
 

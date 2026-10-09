@@ -25,7 +25,12 @@ describe('route states', () => {
   it('links back to the episodes from the not found page', () => {
     render(<NotFound />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Página não encontrada' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Ir para os episódios' })).toHaveAttribute('href', '/pt-BR');
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Página não encontrada' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ir para os episódios' })).toHaveAttribute(
+      'href',
+      '/pt-BR',
+    );
   });
 });

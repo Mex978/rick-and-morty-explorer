@@ -16,11 +16,16 @@ describe('episode page metadata', () => {
   });
 
   it('titles the page after the episode', async () => {
-    vi.mocked(getEpisode).mockResolvedValue({ code: 'S01E01', name: 'Pilot' } as Awaited<ReturnType<typeof getEpisode>>);
+    vi.mocked(getEpisode).mockResolvedValue({ code: 'S01E01', name: 'Pilot' } as Awaited<
+      ReturnType<typeof getEpisode>
+    >);
 
     await expect(generateMetadata(props)).resolves.toEqual({
       title: 'S01E01 · Pilot',
-      alternates: { canonical: '/en/episodes/1', languages: { 'pt-BR': '/pt-BR/episodes/1', en: '/en/episodes/1' } },
+      alternates: {
+        canonical: '/en/episodes/1',
+        languages: { 'pt-BR': '/pt-BR/episodes/1', en: '/en/episodes/1' },
+      },
     });
   });
 

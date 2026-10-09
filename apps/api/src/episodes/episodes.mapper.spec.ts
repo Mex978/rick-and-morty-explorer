@@ -38,7 +38,13 @@ describe('episodes mapper', () => {
   it('maps pagination links to flags', () => {
     const page = toPaginated(episodes, 1, (raw: RawEpisode) => raw.id);
 
-    expect(page.info).toEqual({ count: 51, pages: 3, currentPage: 1, hasNext: true, hasPrev: false });
+    expect(page.info).toEqual({
+      count: 51,
+      pages: 3,
+      currentPage: 1,
+      hasNext: true,
+      hasPrev: false,
+    });
     expect(page.results).toEqual([1, 2]);
   });
 });
