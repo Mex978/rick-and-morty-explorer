@@ -68,11 +68,11 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "Cache hit ratio",
+      "title": "BFF cache hit ratio",
       "gridPos": {
         "x": 0,
         "y": 8,
-        "w": 12,
+        "w": 6,
         "h": 8
       },
       "datasource": {
@@ -81,15 +81,46 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
         },
         "overrides": []
       },
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(cache_events_total{result=\"hit\"}[5m])) / sum(rate(cache_events_total[5m]))",
+          "expr": "(sum(rate(cache_events_total{result=\"hit\"}[5m])) or vector(0)) / clamp_min(sum(rate(cache_events_total[5m])) or vector(0), 1e-9)",
           "legendFormat": "hit ratio"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "BFF cache hits and misses (per minute)",
+      "gridPos": {
+        "x": 6,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (result) (increase(cache_events_total[1m]))",
+          "legendFormat": "{{result}}"
         }
       ]
     },
