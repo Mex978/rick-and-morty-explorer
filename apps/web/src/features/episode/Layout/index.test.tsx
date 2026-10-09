@@ -1,5 +1,5 @@
-import { fireEvent } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, fireEvent } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { episodeDetail } from '../../../../test/fixtures';
 import { render, screen, within } from '../../../../test/render';
@@ -57,5 +57,32 @@ describe('EpisodeLayout character filter', () => {
 
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
     expect(screen.getByText('Nenhum personagem encontrado para “jerry”.')).toBeInTheDocument();
+  });
+});
+
+describe('EpisodeLayout avatars', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('retries a failed avatar with a cache-busting query and then falls back to the initial', () => {
+    render(<EpisodeLayout episode={episodeDetail} />);
+    const avatar = () => screen.getByRole('img', { name: 'Bepisian' });
+
+    fireEvent.error(avatar());
+    act(() => vi.advanceTimersByTime(4000));
+    expect(decodeURIComponent(avatar().getAttribute('src')!)).toContain('35.jpeg?retry=1');
+
+    fireEvent.error(avatar());
+    act(() => vi.advanceTimersByTime(8000));
+    expect(decodeURIComponent(avatar().getAttribute('src')!)).toContain('35.jpeg?retry=2');
+
+    fireEvent.error(avatar());
+    expect(screen.queryByRole('img', { name: 'Bepisian' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Bepisian')).toHaveTextContent('B');
   });
 });
