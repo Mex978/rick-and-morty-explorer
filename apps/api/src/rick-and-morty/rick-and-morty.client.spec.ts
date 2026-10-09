@@ -5,6 +5,7 @@ import nock from 'nock';
 
 import characters from '../../test/fixtures/characters.json';
 import episode from '../../test/fixtures/episode.json';
+import { MetricsService } from '../observability/metrics.service';
 import { RickAndMortyClient } from './rick-and-morty.client';
 
 const baseUrl = 'https://rickandmortyapi.com/api';
@@ -12,6 +13,7 @@ const baseUrl = 'https://rickandmortyapi.com/api';
 describe('RickAndMortyClient', () => {
   const client = new RickAndMortyClient(
     new HttpService(axios.create({ baseURL: baseUrl, timeout: 100 })),
+    new MetricsService(),
   );
 
   beforeAll(() => nock.disableNetConnect());
