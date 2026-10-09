@@ -77,6 +77,28 @@ describe('RickAndMortyClient', () => {
     await expect(client.getEpisode(1)).rejects.toBeInstanceOf(GatewayTimeoutException);
   });
 
+  it('retries when the upstream rate limits and succeeds on the next attempt', async () => {
+    nock(baseUrl).get('/episode/1').reply(429, { error: 'Too many requests' });
+    nock(baseUrl).get('/episode/1').reply(200, episode);
+
+    await expect(client.getEpisode(1)).resolves.toMatchObject({ id: 1 });
+    expect(nock.pendingMocks()).toEqual([]);
+  });
+
+  it('gives up after the retries are exhausted', async () => {
+    nock(baseUrl).get('/episode/1').times(3).reply(503);
+
+    await expect(client.getEpisode(1)).rejects.toBeInstanceOf(BadGatewayException);
+    expect(nock.pendingMocks()).toEqual([]);
+  });
+
+  it('does not retry client errors', async () => {
+    nock(baseUrl).get('/episode/999').times(2).reply(404, { error: 'Episode not found' });
+
+    await expect(client.getEpisode(999)).rejects.toBeInstanceOf(NotFoundException);
+    expect(nock.pendingMocks()).toHaveLength(1);
+  });
+
   it('throws BadGatewayException on any other upstream failure, keeping the cause', async () => {
     nock(baseUrl).get('/episode/1').reply(500);
 

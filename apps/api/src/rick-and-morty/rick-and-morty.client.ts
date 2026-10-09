@@ -8,10 +8,21 @@ import {
 } from '@nestjs/common';
 import { isAxiosError } from 'axios';
 import type { AxiosError } from 'axios';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, retry, throwError, timer } from 'rxjs';
 
 import { MetricsService } from '../observability/metrics.service';
 import type { RawCharacter, RawEpisode, RawPaginated } from './rick-and-morty.types';
+
+// The public API rate limits bursts (429) and has the occasional 5xx; a short retry absorbs both without
+// hiding a real outage, since the timeout still bounds every attempt.
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+const MAX_RETRIES = 2;
+const RETRY_BASE_DELAY_MS = 300;
+
+const isRetryable = (error: unknown) =>
+  isAxiosError(error) &&
+  error.response !== undefined &&
+  RETRYABLE_STATUSES.has(error.response.status);
 
 @Injectable()
 export class RickAndMortyClient {
@@ -53,7 +64,15 @@ export class RickAndMortyClient {
   ): Promise<T> {
     const stop = this.metrics.upstreamRequestDuration.startTimer({ operation });
     try {
-      const response = await firstValueFrom(this.http.get<T>(path, { params }));
+      const response = await firstValueFrom(
+        this.http.get<T>(path, { params }).pipe(
+          retry({
+            count: MAX_RETRIES,
+            delay: (error: unknown, attempt) =>
+              isRetryable(error) ? timer(RETRY_BASE_DELAY_MS * attempt) : throwError(() => error),
+          }),
+        ),
+      );
       stop({ status: response.status });
       return response.data;
     } catch (error) {

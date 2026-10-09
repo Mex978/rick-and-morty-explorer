@@ -128,6 +128,7 @@ The Grafana dashboard provisioned by Docker Compose shows requests per second an
 - **Smart/dumb maps onto server/client components.** The smart one fetches on the server, the dumb one only renders and translates. No data fetching library on the client: server components call the BFF with `fetch` and Next's data cache, and the `Cache-Control` header covers the browser.
 - **Search lives in the URL.** Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is a shareable link. Characters are filtered on the client because the whole episode is already on the page.
 - **Themes are CSS variables.** A `data-theme` attribute toggles them, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme and switching re-renders nothing. Browsers with the View Transitions API reveal the new theme in a circle from the click. Reading the cookie makes every page dynamic, which is fine: caching happens at the data layer, not at the HTML.
+- **The public API is treated as a shared, rate-limited resource.** The BFF retries 429 and transient 5xx twice with a short backoff, and episode cards do not prefetch their detail page, because prefetching twenty of them at once is exactly the burst that trips the limit.
 - **next-intl for routing, messages, plurals and dates.** A test guarantees both locales have the same keys and the same ICU arguments.
 
 ## Testing
