@@ -19,8 +19,8 @@ export class EpisodesService {
 
   async list(page: number, name?: string): Promise<Paginated<Episode>> {
     const raw = await this.client.getEpisodes(page, name).catch((error: unknown) => {
-      // The upstream answers 404 to a name filter with no matches, which for a search is an empty result.
-      if (name && error instanceof NotFoundException) return emptyPage;
+      // A search with no matches is a 404 upstream but an empty first page for us; later pages stay 404.
+      if (name && page === 1 && error instanceof NotFoundException) return emptyPage;
       throw error;
     });
 
