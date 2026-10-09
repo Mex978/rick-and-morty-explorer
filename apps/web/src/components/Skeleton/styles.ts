@@ -24,9 +24,9 @@ export const Block = styled.span<{ $width?: string; $height?: string; $radius?: 
   }
 `;
 
-export const Status = styled.div`
+export const Content = styled.div`
   display: grid;
-  gap: 12px;
+  gap: 16px;
 `;
 
 export const Grid = styled.div<{ $min: string }>`
