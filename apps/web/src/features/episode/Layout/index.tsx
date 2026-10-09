@@ -62,7 +62,9 @@ export function EpisodeLayout({ episode }: EpisodeProps) {
 
 function filterByName(characters: Character[], query: string): Character[] {
   const needle = query.trim().toLocaleLowerCase();
-  return needle ? characters.filter((character) => character.name.toLocaleLowerCase().includes(needle)) : characters;
+  return needle
+    ? characters.filter((character) => character.name.toLocaleLowerCase().includes(needle))
+    : characters;
 }
 
 function CharacterCard({ character, priority }: { character: Character; priority: boolean }) {
@@ -71,7 +73,13 @@ function CharacterCard({ character, priority }: { character: Character; priority
 
   return (
     <Card>
-      <Image src={character.image} alt={character.name} width={300} height={300} priority={priority} />
+      <Image
+        src={character.image}
+        alt={character.name}
+        width={300}
+        height={300}
+        priority={priority}
+      />
       <CardBody>
         <Name>{character.name}</Name>
         <Badge $status={status}>{t(`status.${status}`)}</Badge>

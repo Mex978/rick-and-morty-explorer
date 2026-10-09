@@ -37,7 +37,13 @@ describe('GET /api/v1/episodes', () => {
     const response = await request(app.getHttpServer()).get('/api/v1/episodes').expect(200);
 
     expect(response.headers['cache-control']).toBe('public, max-age=3600');
-    expect(response.body.info).toEqual({ count: 51, pages: 3, currentPage: 1, hasNext: true, hasPrev: false });
+    expect(response.body.info).toEqual({
+      count: 51,
+      pages: 3,
+      currentPage: 1,
+      hasNext: true,
+      hasPrev: false,
+    });
     expect(response.body.results[0]).toEqual({
       id: 1,
       name: 'Pilot',
@@ -49,10 +55,15 @@ describe('GET /api/v1/episodes', () => {
 
   it('filters episodes by name and answers an empty page when nothing matches', async () => {
     nock(upstream).get('/episode').query({ page: 1, name: 'pilot' }).reply(200, episodes);
-    nock(upstream).get('/episode').query({ page: 1, name: 'nothing' }).reply(404, { error: 'There is nothing here' });
+    nock(upstream)
+      .get('/episode')
+      .query({ page: 1, name: 'nothing' })
+      .reply(404, { error: 'There is nothing here' });
 
     const found = await request(app.getHttpServer()).get('/api/v1/episodes?name=pilot').expect(200);
-    const empty = await request(app.getHttpServer()).get('/api/v1/episodes?name=nothing').expect(200);
+    const empty = await request(app.getHttpServer())
+      .get('/api/v1/episodes?name=nothing')
+      .expect(200);
 
     expect(found.body.results).toHaveLength(2);
     expect(empty.body).toEqual({
@@ -61,17 +72,23 @@ describe('GET /api/v1/episodes', () => {
     });
   });
 
-  it.each(['page=abc', 'page=0', 'page=-1', 'page=1.5', 'name=a&name=b', `name=${'x'.repeat(101)}`])(
-    'returns 400 for the invalid query %s',
-    async (query) => {
-      await request(app.getHttpServer()).get(`/api/v1/episodes?${query}`).expect(400);
-    },
-  );
+  it.each([
+    'page=abc',
+    'page=0',
+    'page=-1',
+    'page=1.5',
+    'name=a&name=b',
+    `name=${'x'.repeat(101)}`,
+  ])('returns 400 for the invalid query %s', async (query) => {
+    await request(app.getHttpServer()).get(`/api/v1/episodes?${query}`).expect(400);
+  });
 
   it('does not mark error responses as cacheable', async () => {
     nock(upstream).get('/episode/999').reply(404, { error: 'Episode not found' });
 
-    const badRequest = await request(app.getHttpServer()).get('/api/v1/episodes?page=abc').expect(400);
+    const badRequest = await request(app.getHttpServer())
+      .get('/api/v1/episodes?page=abc')
+      .expect(400);
     const notFound = await request(app.getHttpServer()).get('/api/v1/episodes/999').expect(404);
 
     expect(badRequest.headers['cache-control']).toBeUndefined();

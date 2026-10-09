@@ -1,6 +1,10 @@
 import type { Character, Episode, Paginated } from '@rma/types';
 
-import type { RawCharacter, RawEpisode, RawPaginated } from '../rick-and-morty/rick-and-morty.types';
+import type {
+  RawCharacter,
+  RawEpisode,
+  RawPaginated,
+} from '../rick-and-morty/rick-and-morty.types';
 
 export function toEpisode(raw: RawEpisode): Episode {
   return {

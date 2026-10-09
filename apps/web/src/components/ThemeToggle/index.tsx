@@ -7,14 +7,23 @@ import { THEME_COOKIE } from '@/styles/theme';
 
 import { Button, Moon, Sun } from './styles';
 
-const icon = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 };
+const icon = {
+  width: 18,
+  height: 18,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+};
 
 export function ThemeToggle() {
   const t = useTranslations('app');
 
   function toggle(event: MouseEvent<HTMLButtonElement>) {
     const root = document.documentElement;
-    const current = root.dataset.theme ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const current =
+      root.dataset.theme ??
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     const next = current === 'dark' ? 'light' : 'dark';
 
     const apply = () => {
@@ -24,13 +33,19 @@ export function ThemeToggle() {
     // A cookie, not localStorage, so the server renders the chosen theme and the page never flashes the other one.
     document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
 
-    if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (
+      !document.startViewTransition ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       apply();
       return;
     }
 
     const { clientX: x, clientY: y } = event;
-    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    const radius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
 
     document
       .startViewTransition(apply)

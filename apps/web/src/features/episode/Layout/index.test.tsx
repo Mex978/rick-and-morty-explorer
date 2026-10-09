@@ -11,13 +11,17 @@ describe('EpisodeLayout', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Pilot' })).toBeInTheDocument();
     expect(screen.getByText('S01E01')).toBeInTheDocument();
-    expect(screen.getByText('Exibido em 2 de dezembro de 2013 · 3 personagens')).toBeInTheDocument();
+    expect(
+      screen.getByText('Exibido em 2 de dezembro de 2013 · 3 personagens'),
+    ).toBeInTheDocument();
   });
 
   it('renders characters in the order received', () => {
     render(<EpisodeLayout episode={episodeDetail} />);
 
-    const names = screen.getAllByRole('listitem').map((item) => within(item).getByRole('img').getAttribute('alt'));
+    const names = screen
+      .getAllByRole('listitem')
+      .map((item) => within(item).getByRole('img').getAttribute('alt'));
 
     expect(names).toEqual(['Bepisian', 'Beth Smith', 'Rick Sanchez']);
   });
@@ -35,15 +39,21 @@ describe('EpisodeLayout character filter', () => {
   it('filters characters by name as the user types', () => {
     render(<EpisodeLayout episode={episodeDetail} />);
 
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Filtrar personagens' }), { target: { value: 'SMITH' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Filtrar personagens' }), {
+      target: { value: 'SMITH' },
+    });
 
-    expect(screen.getAllByRole('img').map((img) => img.getAttribute('alt'))).toEqual(['Beth Smith']);
+    expect(screen.getAllByRole('img').map((img) => img.getAttribute('alt'))).toEqual([
+      'Beth Smith',
+    ]);
   });
 
   it('shows an empty state when no character matches', () => {
     render(<EpisodeLayout episode={episodeDetail} />);
 
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Filtrar personagens' }), { target: { value: 'jerry' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Filtrar personagens' }), {
+      target: { value: 'jerry' },
+    });
 
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
     expect(screen.getByText('Nenhum personagem encontrado para “jerry”.')).toBeInTheDocument();

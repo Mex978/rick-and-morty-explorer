@@ -9,18 +9,7 @@ import { Link, useRouter } from '@/i18n/navigation';
 import { formatAirDate } from '@/lib/air-date';
 
 import type { EpisodesProps } from '../data';
-import {
-  Card,
-  Code,
-  Empty,
-  Grid,
-  Meta,
-  Name,
-  Results,
-  Season,
-  SeasonTitle,
-  Title,
-} from './styles';
+import { Card, Code, Empty, Grid, Meta, Name, Results, Season, SeasonTitle, Title } from './styles';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -84,7 +73,8 @@ function useSearch(query: string) {
   // The input is uncontrolled so typing never fights the url. Only pull the url value back in when the change
   // came from somewhere else (clear link, back button), otherwise the user's keystrokes would be overwritten.
   useEffect(() => {
-    if (inputRef.current && document.activeElement !== inputRef.current) inputRef.current.value = query;
+    if (inputRef.current && document.activeElement !== inputRef.current)
+      inputRef.current.value = query;
   }, [query]);
 
   function navigate(value: string) {

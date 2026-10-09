@@ -60,7 +60,10 @@ describe('EpisodesLayout', () => {
       />,
     );
 
-    expect(screen.getByRole('link', { name: /Pilot/ })).toHaveAttribute('href', '/pt-BR/episodes/1');
+    expect(screen.getByRole('link', { name: /Pilot/ })).toHaveAttribute(
+      'href',
+      '/pt-BR/episodes/1',
+    );
   });
 
   it('shows the current query and an empty state when nothing matches', () => {
@@ -123,14 +126,18 @@ describe('EpisodesLayout', () => {
       />,
     );
 
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Buscar episódio' }), { target: { value: '' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Buscar episódio' }), {
+      target: { value: '' },
+    });
 
     expect(replace).toHaveBeenCalledWith('/');
   });
 
   it('reflects a query that changed outside the input', () => {
     const pagination = { currentPage: 1, totalPages: 1, prevHref: null, nextHref: null };
-    const { rerender } = render(<EpisodesLayout query="rick" seasons={seasons} pagination={pagination} />);
+    const { rerender } = render(
+      <EpisodesLayout query="rick" seasons={seasons} pagination={pagination} />,
+    );
 
     rerender(<EpisodesLayout query="" seasons={seasons} pagination={pagination} />);
 

@@ -17,7 +17,13 @@ describe('Header', () => {
   it('switches language keeping the current path and query', () => {
     render(<Header />);
 
-    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute('href', '/en?page=2&q=rick');
-    expect(screen.getByRole('link', { name: 'Português (Brasil)' })).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute(
+      'href',
+      '/en?page=2&q=rick',
+    );
+    expect(screen.getByRole('link', { name: 'Português (Brasil)' })).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
   });
 });

@@ -33,7 +33,9 @@ describe('Episodes', () => {
   });
 
   it('builds pagination links around the current page', async () => {
-    vi.mocked(getEpisodes).mockResolvedValue(episodesPage({ currentPage: 2, hasPrev: true, hasNext: true }));
+    vi.mocked(getEpisodes).mockResolvedValue(
+      episodesPage({ currentPage: 2, hasPrev: true, hasNext: true }),
+    );
 
     render(await Episodes({ page: 2, query: '' }));
 
@@ -47,18 +49,25 @@ describe('Episodes', () => {
     render(await Episodes({ page: 1, query: 'rick' }));
 
     expect(getEpisodes).toHaveBeenCalledWith(1, 'rick');
-    expect(screen.getByRole('link', { name: 'Próxima' })).toHaveAttribute('href', '/pt-BR?page=2&q=rick');
+    expect(screen.getByRole('link', { name: 'Próxima' })).toHaveAttribute(
+      'href',
+      '/pt-BR?page=2&q=rick',
+    );
   });
 
   it('renders the not found page when the api rejects the query', async () => {
     vi.mocked(getEpisodes).mockRejectedValue(new ApiError(400, '/episodes?page=1&name=x'));
 
-    await expect(Episodes({ page: 1, query: 'x' })).rejects.toMatchObject({ digest: expect.stringContaining('404') });
+    await expect(Episodes({ page: 1, query: 'x' })).rejects.toMatchObject({
+      digest: expect.stringContaining('404'),
+    });
   });
 
   it('renders the not found page when the page does not exist', async () => {
     vi.mocked(getEpisodes).mockRejectedValue(new ApiError(404, '/episodes?page=99'));
 
-    await expect(Episodes({ page: 99, query: '' })).rejects.toMatchObject({ digest: expect.stringContaining('404') });
+    await expect(Episodes({ page: 99, query: '' })).rejects.toMatchObject({
+      digest: expect.stringContaining('404'),
+    });
   });
 });

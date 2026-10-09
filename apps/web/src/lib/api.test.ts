@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, getEpisode, getEpisodes } from './api';
 
 function stubFetch(status: number, body: unknown) {
-  const fetchMock = vi.fn().mockResolvedValue({ ok: status < 400, status, json: () => Promise.resolve(body) });
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValue({ ok: status < 400, status, json: () => Promise.resolve(body) });
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 }
@@ -30,7 +32,10 @@ describe('api client', () => {
 
     await getEpisodes(1, 'rick');
 
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/api/v1/episodes?page=1&name=rick', expect.anything());
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:3001/api/v1/episodes?page=1&name=rick',
+      expect.anything(),
+    );
   });
 
   it('returns the parsed episode detail', async () => {

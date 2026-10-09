@@ -5,8 +5,10 @@ import messages from '@/messages/pt-BR.json';
 import EpisodesPage, { generateMetadata } from './page';
 
 vi.mock('next-intl/server', () => ({
-  getTranslations: async ({ namespace }: { namespace: keyof typeof messages }) => (key: string) =>
-    (messages[namespace] as Record<string, string>)[key],
+  getTranslations:
+    async ({ namespace }: { namespace: keyof typeof messages }) =>
+    (key: string) =>
+      (messages[namespace] as Record<string, string>)[key],
 }));
 
 const props = (searchParams: Record<string, string | string[] | undefined>) => ({
@@ -29,7 +31,9 @@ describe('EpisodesPage', () => {
   });
 
   it.each(['0', '-1', '1.5', 'abc'])('renders the not found page for page=%s', async (page) => {
-    await expect(EpisodesPage(props({ page }))).rejects.toMatchObject({ digest: expect.stringContaining('404') });
+    await expect(EpisodesPage(props({ page }))).rejects.toMatchObject({
+      digest: expect.stringContaining('404'),
+    });
   });
 
   it('uses the translated title and per locale alternates', async () => {

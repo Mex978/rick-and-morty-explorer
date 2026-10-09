@@ -18,7 +18,9 @@ export class EpisodesController {
   constructor(private readonly episodes: EpisodesService) {}
 
   @Get()
-  list(@Query(new ZodValidationPipe(listQuery)) { page, name }: z.infer<typeof listQuery>): Promise<Paginated<Episode>> {
+  list(
+    @Query(new ZodValidationPipe(listQuery)) { page, name }: z.infer<typeof listQuery>,
+  ): Promise<Paginated<Episode>> {
     return this.episodes.list(page, name || undefined);
   }
 

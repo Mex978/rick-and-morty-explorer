@@ -3,10 +3,18 @@ import type { Character, Episode, EpisodeDetail, Paginated } from '@rma/types';
 export const episodes: Episode[] = [
   { id: 1, name: 'Pilot', airDate: 'December 2, 2013', code: 'S01E01', characterCount: 19 },
   { id: 2, name: 'Lawnmower Dog', airDate: 'December 9, 2013', code: 'S01E02', characterCount: 1 },
-  { id: 12, name: 'A Rickle in Time', airDate: 'July 26, 2015', code: 'S02E01', characterCount: 24 },
+  {
+    id: 12,
+    name: 'A Rickle in Time',
+    airDate: 'July 26, 2015',
+    code: 'S02E01',
+    characterCount: 24,
+  },
 ];
 
-export function episodesPage(overrides: Partial<Paginated<Episode>['info']> = {}): Paginated<Episode> {
+export function episodesPage(
+  overrides: Partial<Paginated<Episode>['info']> = {},
+): Paginated<Episode> {
   return {
     info: { count: 51, pages: 3, currentPage: 1, hasNext: true, hasPrev: false, ...overrides },
     results: episodes,
