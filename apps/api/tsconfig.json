@@ -2,7 +2,7 @@
   "extends": "@rma/tsconfig/nest.json",
   "compilerOptions": {
     "outDir": "dist",
-    "baseUrl": "."
+    "types": ["jest", "node"]
   },
   "include": ["src", "test"]
 }

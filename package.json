@@ -22,7 +22,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
-    "turbo": "^2.11.7"
+    "turbo": "^2.11.7",
+    "typescript": "^5.9.3"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,json,md,yml,yaml}": "prettier --write"
