@@ -1,5 +1,5 @@
 import { CacheInterceptor } from '@nestjs/cache-manager';
-import { Controller, Get, Param, ParseIntPipe, Query, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseInterceptors } from '@nestjs/common';
 import type { Episode, EpisodeDetail, Paginated } from '@rma/types';
 import { z } from 'zod';
 
@@ -30,7 +30,9 @@ export class EpisodesController {
   }
 
   @Get(':id')
-  detail(@Param('id', ParseIntPipe) id: number): Promise<EpisodeDetail> {
+  detail(
+    @Param('id', new ZodValidationPipe(z.coerce.number().int().positive())) id: number,
+  ): Promise<EpisodeDetail> {
     return this.episodes.detail(id);
   }
 }
