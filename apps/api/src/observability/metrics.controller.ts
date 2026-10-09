@@ -1,10 +1,12 @@
-import { Controller, Get, Header, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Header, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 
+import { MetricsTokenGuard } from './metrics-token.guard';
 import { MetricsService } from './metrics.service';
 
 @SkipThrottle()
 @Controller({ path: 'metrics', version: VERSION_NEUTRAL })
+@UseGuards(MetricsTokenGuard)
 export class MetricsController {
   constructor(private readonly metrics: MetricsService) {}
 

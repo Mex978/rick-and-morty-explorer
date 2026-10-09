@@ -9,7 +9,13 @@ describe('validateEnv', () => {
       THROTTLE_LIMIT: 300,
       TRUST_PROXY_HOPS: 0,
       SHUTDOWN_DRAIN_MS: 0,
+      METRICS_TOKEN: undefined,
     });
+  });
+
+  it('treats a blank metrics token as unset', () => {
+    expect(validateEnv({ METRICS_TOKEN: '  ' }).METRICS_TOKEN).toBeUndefined();
+    expect(validateEnv({ METRICS_TOKEN: 'secret' }).METRICS_TOKEN).toBe('secret');
   });
 
   it('fails fast on an invalid value, naming the variable', () => {
