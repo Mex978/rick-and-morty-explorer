@@ -30,8 +30,11 @@ services:
     image: prom/prometheus:v3.5.0
     ports:
       - '9090:9090'
-    volumes:
-      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    # A compose config rather than a bind mount: its content is part of the service definition,
+    # so editing the file makes the next `up` recreate the container and Prometheus reread it.
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus.yml
     depends_on:
       - api
 
@@ -57,3 +60,7 @@ services:
       - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+
+configs:
+  prometheus:
+    file: ./docker/prometheus/prometheus.yml
