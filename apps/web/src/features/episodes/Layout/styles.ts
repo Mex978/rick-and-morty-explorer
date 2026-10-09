@@ -6,8 +6,8 @@ export const Title = styled.h1`
   letter-spacing: -0.02em;
 `;
 
-export const Results = styled.div<{ $pending: boolean }>`
-  opacity: ${({ $pending }) => ($pending ? 0.5 : 1)};
+export const Results = styled.div<{ $busy: boolean }>`
+  opacity: ${({ $busy }) => ($busy ? 0.5 : 1)};
   transition: opacity 0.15s;
 `;
 

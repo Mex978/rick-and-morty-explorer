@@ -1,39 +1,37 @@
 'use client';
 
 import { useFormatter, useTranslations } from 'next-intl';
-import { useEffect, useRef, useTransition } from 'react';
 
 import { Pagination } from '@/components/Pagination';
 import { SearchField } from '@/components/SearchField';
-import { Link, useRouter } from '@/i18n/navigation';
+import { Link } from '@/i18n/navigation';
 import { formatAirDate } from '@/lib/air-date';
 
 import type { EpisodesProps } from '../data';
+import { useEpisodeSearch } from '../useEpisodeSearch';
 import { Card, Code, Empty, Grid, Meta, Name, Results, Season, SeasonTitle, Title } from './styles';
 
-const SEARCH_DEBOUNCE_MS = 300;
-
-export function EpisodesLayout({ query, seasons, pagination }: EpisodesProps) {
+export function EpisodesLayout({ query, seasons, page, pages }: EpisodesProps) {
   const t = useTranslations('episodes');
   const format = useFormatter();
-  const { inputRef, search, isPending } = useSearch(query);
+  const { input, search, searchNow, isPending } = useEpisodeSearch(query);
 
   return (
     <>
       <Title>{t('title')}</Title>
       <SearchField
-        ref={inputRef}
+        ref={input}
         name="q"
         label={t('search.label')}
         placeholder={t('search.placeholder')}
         defaultValue={query}
-        onChange={(event) => search(event.target.value, { immediate: event.target.value === '' })}
+        onChange={(event) => (event.target.value ? search(event.target.value) : searchNow(''))}
         onSubmit={(event) => {
           event.preventDefault();
-          search(new FormData(event.currentTarget).get('q') as string, { immediate: true });
+          searchNow(input.current?.value ?? '');
         }}
       />
-      <Results aria-busy={isPending} $pending={isPending}>
+      <Results aria-busy={isPending} $busy={isPending}>
         {seasons.length === 0 && (
           <Empty>
             {t('empty', { query })} <Link href="/">{t('search.clear')}</Link>
@@ -56,37 +54,8 @@ export function EpisodesLayout({ query, seasons, pagination }: EpisodesProps) {
             </Grid>
           </Season>
         ))}
-        {seasons.length > 0 && <Pagination {...pagination} />}
+        {seasons.length > 0 && <Pagination page={page} pages={pages} />}
       </Results>
     </>
   );
-}
-
-function useSearch(query: string) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  // The input is uncontrolled so typing never fights the url. Only pull the url value back in when the change
-  // came from somewhere else (clear link, back button), otherwise the user's keystrokes would be overwritten.
-  useEffect(() => {
-    if (inputRef.current && document.activeElement !== inputRef.current)
-      inputRef.current.value = query;
-  }, [query]);
-
-  function navigate(value: string) {
-    const query = value.trim();
-    startTransition(() => router.replace(query ? `/?${new URLSearchParams({ q: query })}` : '/'));
-  }
-
-  function search(value: string, { immediate }: { immediate: boolean }) {
-    clearTimeout(timer.current);
-    if (immediate) return navigate(value);
-    timer.current = setTimeout(() => navigate(value), SEARCH_DEBOUNCE_MS);
-  }
-
-  return { inputRef, search, isPending };
 }

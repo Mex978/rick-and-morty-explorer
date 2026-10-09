@@ -1,9 +1,12 @@
-import { act, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { episodeDetail } from '../../../../test/fixtures';
-import { render, screen, within } from '../../../../test/render';
-import { EpisodeLayout } from '.';
+import { EpisodeLayout } from '@/features/episode/Layout';
+import { episodeDetail } from '../../fixtures';
+import { act, fireEvent, render, screen, within } from '../../render';
+
+const filter = () => screen.getByRole('searchbox', { name: 'Filtrar personagens' });
+const names = () =>
+  screen.getAllByRole('listitem').map((item) => within(item).getByRole('img').getAttribute('alt'));
 
 describe('EpisodeLayout', () => {
   it('renders the episode header with a formatted air date', () => {
@@ -16,44 +19,28 @@ describe('EpisodeLayout', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders characters in the order received', () => {
+  it('renders characters in the order received with translated status badges', () => {
     render(<EpisodeLayout episode={episodeDetail} />);
 
-    const names = screen
-      .getAllByRole('listitem')
-      .map((item) => within(item).getByRole('img').getAttribute('alt'));
-
-    expect(names).toEqual(['Bepisian', 'Beth Smith', 'Rick Sanchez']);
-  });
-
-  it('translates the status badge', () => {
-    render(<EpisodeLayout episode={episodeDetail} />);
-
+    expect(names()).toEqual(['Bepisian', 'Beth Smith', 'Rick Sanchez']);
     expect(screen.getByText('Vivo')).toBeInTheDocument();
     expect(screen.getByText('Morto')).toBeInTheDocument();
     expect(screen.getByText('Desconhecido')).toBeInTheDocument();
   });
-});
 
-describe('EpisodeLayout character filter', () => {
-  it('filters characters by name as the user types', () => {
+  it('filters characters by name as the user types, without submitting anything', () => {
     render(<EpisodeLayout episode={episodeDetail} />);
 
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Filtrar personagens' }), {
-      target: { value: 'SMITH' },
-    });
+    fireEvent.change(filter(), { target: { value: 'SMITH' } });
+    fireEvent.submit(filter().closest('form')!);
 
-    expect(screen.getAllByRole('img').map((img) => img.getAttribute('alt'))).toEqual([
-      'Beth Smith',
-    ]);
+    expect(names()).toEqual(['Beth Smith']);
   });
 
   it('shows an empty state when no character matches', () => {
     render(<EpisodeLayout episode={episodeDetail} />);
 
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Filtrar personagens' }), {
-      target: { value: 'jerry' },
-    });
+    fireEvent.change(filter(), { target: { value: 'jerry' } });
 
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
     expect(screen.getByText('Nenhum personagem encontrado para “jerry”.')).toBeInTheDocument();
@@ -72,17 +59,18 @@ describe('EpisodeLayout avatars', () => {
   it('retries a failed avatar with a cache-busting query and then falls back to the initial', () => {
     render(<EpisodeLayout episode={episodeDetail} />);
     const avatar = () => screen.getByRole('img', { name: 'Bepisian' });
+    const src = () => decodeURIComponent(avatar().getAttribute('src')!);
 
     fireEvent.error(avatar());
     act(() => vi.advanceTimersByTime(4000));
-    expect(decodeURIComponent(avatar().getAttribute('src')!)).toContain('35.jpeg?retry=1');
+    expect(src()).toContain('35.jpeg?retry=1');
 
     fireEvent.error(avatar());
     act(() => vi.advanceTimersByTime(8000));
-    expect(decodeURIComponent(avatar().getAttribute('src')!)).toContain('35.jpeg?retry=2');
+    expect(src()).toContain('35.jpeg?retry=2');
 
     fireEvent.error(avatar());
-    expect(screen.queryByRole('img', { name: 'Bepisian' })).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Bepisian')).toHaveTextContent('B');
+    expect(avatar()).toHaveTextContent('B');
+    expect(avatar().tagName).toBe('DIV');
   });
 });

@@ -5,7 +5,7 @@ const shimmer = keyframes`
   to { background-position: -200% 0; }
 `;
 
-export const Block = styled.span<{ $width?: string; $height?: string; $radius?: string }>`
+export const SkeletonBlock = styled.span<{ $width?: string; $height?: string; $radius?: string }>`
   display: block;
   width: ${({ $width }) => $width ?? '100%'};
   height: ${({ $height }) => $height ?? '1em'};

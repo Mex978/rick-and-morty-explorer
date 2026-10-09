@@ -3,7 +3,9 @@
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
-import { Block, Card, Content, Grid, VisuallyHidden } from './styles';
+import { Card, Content, Grid, VisuallyHidden } from './styles';
+
+export { SkeletonBlock } from './styles';
 
 export function Skeleton({ children }: { children: ReactNode }) {
   const t = useTranslations();
@@ -33,5 +35,3 @@ export function SkeletonCards({
     </Grid>
   );
 }
-
-export const SkeletonBlock = Block;

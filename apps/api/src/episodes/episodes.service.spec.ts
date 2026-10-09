@@ -53,6 +53,12 @@ describe('EpisodesService', () => {
     });
   });
 
+  it('keeps the 404 for a search page past the last one', async () => {
+    client.getEpisodes.mockRejectedValue(new NotFoundException());
+
+    await expect(service.list(2, 'rick')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
   it('keeps the 404 when the page itself does not exist', async () => {
     client.getEpisodes.mockRejectedValue(new NotFoundException());
 

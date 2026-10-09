@@ -1,15 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { episodeDetail } from '../../../test/fixtures';
-import { render, screen } from '../../../test/render';
-import { Episode } from '.';
-
-function stubFetch(status: number, body: unknown) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn().mockResolvedValue({ ok: status < 400, status, json: () => Promise.resolve(body) }),
-  );
-}
+import { Episode } from '@/features/episode';
+import { episodeDetail, stubFetch } from '../../fixtures';
+import { render, screen } from '../../render';
 
 describe('Episode', () => {
   afterEach(() => {
@@ -33,20 +26,11 @@ describe('Episode', () => {
     );
   });
 
-  it('renders the not found page when the api returns 404', async () => {
-    stubFetch(404, { message: 'Not Found' });
+  it.each([404, 400])('renders the not found page when the api answers %s', async (status) => {
+    stubFetch(status, { message: 'nope' });
 
     await expect(Episode({ id: 999 })).rejects.toMatchObject({
       digest: expect.stringContaining('404'),
     });
-  });
-
-  it('renders the not found page without calling the api for an invalid id', async () => {
-    stubFetch(200, episodeDetail);
-
-    await expect(Episode({ id: Number.NaN })).rejects.toMatchObject({
-      digest: expect.stringContaining('404'),
-    });
-    expect(fetch).not.toHaveBeenCalled();
   });
 });

@@ -42,6 +42,7 @@
     "location": "Última localização"
   },
   "pagination": {
+    "label": "Paginação",
     "previous": "Anterior",
     "next": "Próxima",
     "page": "Página {current} de {total}"

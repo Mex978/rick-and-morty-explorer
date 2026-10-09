@@ -6,6 +6,8 @@ import type { Request, Response } from 'express';
 
 import { MetricsService } from './metrics.service';
 
+const REQUEST_ID = /^[\w.-]{1,64}$/;
+
 @Injectable()
 export class RequestLoggerMiddleware implements NestMiddleware {
   private readonly logger = new Logger('HTTP');
@@ -13,7 +15,7 @@ export class RequestLoggerMiddleware implements NestMiddleware {
   constructor(private readonly metrics: MetricsService) {}
 
   use(request: Request, response: Response, next: () => void): void {
-    const requestId = request.header('x-request-id') ?? randomUUID();
+    const requestId = request.header('x-request-id')?.match(REQUEST_ID)?.[0] ?? randomUUID();
     const startedAt = process.hrtime.bigint();
     response.setHeader('x-request-id', requestId);
 

@@ -1,14 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError, getEpisode, getEpisodes } from './api';
-
-function stubFetch(status: number, body: unknown) {
-  const fetchMock = vi
-    .fn()
-    .mockResolvedValue({ ok: status < 400, status, json: () => Promise.resolve(body) });
-  vi.stubGlobal('fetch', fetchMock);
-  return fetchMock;
-}
+import { getEpisode, getEpisodes } from '@/lib/api';
+import { stubFetch } from '../fixtures';
 
 describe('api client', () => {
   afterEach(() => {
@@ -44,12 +37,15 @@ describe('api client', () => {
     await expect(getEpisode(1)).resolves.toEqual({ id: 1, name: 'Pilot' });
   });
 
-  it('throws an ApiError carrying the status on failure', async () => {
-    stubFetch(404, { message: 'Not Found' });
+  it.each([404, 400])('returns null when the api answers %s', async (status) => {
+    stubFetch(status, { message: 'nope' });
 
-    const error = await getEpisode(999).catch((e: unknown) => e);
+    await expect(getEpisode(999)).resolves.toBeNull();
+  });
 
-    expect(error).toBeInstanceOf(ApiError);
-    expect((error as ApiError).status).toBe(404);
+  it('throws on any other failure', async () => {
+    stubFetch(502, { message: 'Bad Gateway' });
+
+    await expect(getEpisode(1)).rejects.toThrow('API responded 502');
   });
 });

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatAirDate, parseAirDate } from './air-date';
+import { formatAirDate, parseAirDate } from '@/lib/air-date';
+
+const format = { dateTime: () => 'formatted' } as unknown as Parameters<typeof formatAirDate>[1];
 
 describe('parseAirDate', () => {
   it('pins the calendar day to utc midnight', () => {
@@ -13,12 +15,11 @@ describe('parseAirDate', () => {
 });
 
 describe('formatAirDate', () => {
-  it('falls back to the raw value when the date cannot be parsed', () => {
-    const format = { dateTime: () => 'formatted' } as unknown as Parameters<
-      typeof formatAirDate
-    >[1];
-
+  it('formats a valid date', () => {
     expect(formatAirDate('December 2, 2013', format)).toBe('formatted');
+  });
+
+  it('falls back to the raw value when the date cannot be parsed', () => {
     expect(formatAirDate('unknown', format)).toBe('unknown');
   });
 });

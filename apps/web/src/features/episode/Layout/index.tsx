@@ -10,6 +10,8 @@ import { Link } from '@/i18n/navigation';
 import { formatAirDate } from '@/lib/air-date';
 
 import type { EpisodeProps } from '../data';
+import { useAvatar } from '../useAvatar';
+import type { CharacterStatus } from './styles';
 import {
   AvatarFallback,
   BackLink,
@@ -26,9 +28,7 @@ import {
   Title,
 } from './styles';
 
-const AVATAR_RETRIES = 2;
-// The upstream answers bursts with 429 and a retry-after of about ten seconds, so retries wait long enough to matter.
-const AVATAR_RETRY_DELAYS_MS = [4000, 8000];
+const EAGER_AVATARS = 4;
 
 export function EpisodeLayout({ episode }: EpisodeProps) {
   const t = useTranslations('episode');
@@ -58,27 +58,27 @@ export function EpisodeLayout({ episode }: EpisodeProps) {
       {characters.length === 0 && <Empty>{t('empty', { query })}</Empty>}
       <Grid>
         {characters.map((character, index) => (
-          <CharacterCard key={character.id} character={character} priority={index < 4} />
+          <CharacterCard key={character.id} character={character} eager={index < EAGER_AVATARS} />
         ))}
       </Grid>
     </>
   );
 }
 
-function filterByName(characters: Character[], query: string): Character[] {
+function filterByName(characters: Character[], query: string) {
   const needle = query.trim().toLocaleLowerCase();
   return needle
-    ? characters.filter((character) => character.name.toLocaleLowerCase().includes(needle))
+    ? characters.filter((c) => c.name.toLocaleLowerCase().includes(needle))
     : characters;
 }
 
-function CharacterCard({ character, priority }: { character: Character; priority: boolean }) {
+function CharacterCard({ character, eager }: { character: Character; eager: boolean }) {
   const t = useTranslations('character');
-  const status = toStatusKey(character.status);
+  const status = statusKey(character.status);
 
   return (
     <Card>
-      <CharacterAvatar character={character} priority={priority} />
+      <Avatar character={character} eager={eager} />
       <CardBody>
         <Name>{character.name}</Name>
         <Badge $status={status}>{t(`status.${status}`)}</Badge>
@@ -95,31 +95,30 @@ function CharacterCard({ character, priority }: { character: Character; priority
   );
 }
 
-// A page with 60 avatars is a burst for the upstream CDN. A failed image gets delayed retries (a new query
-// string forces the browser to fetch again) and then a placeholder instead of a broken icon.
-function CharacterAvatar({ character, priority }: { character: Character; priority: boolean }) {
-  const [attempt, setAttempt] = useState(0);
-  const [failed, setFailed] = useState(false);
+function Avatar({ character, eager }: { character: Character; eager: boolean }) {
+  const { src, failed, retry } = useAvatar(character.image);
 
-  if (failed)
-    return <AvatarFallback aria-label={character.name}>{character.name.charAt(0)}</AvatarFallback>;
+  if (failed) {
+    return (
+      <AvatarFallback role="img" aria-label={character.name}>
+        {character.name[0]}
+      </AvatarFallback>
+    );
+  }
 
   return (
     <Image
-      src={attempt === 0 ? character.image : `${character.image}?retry=${attempt}`}
+      src={src}
       alt={character.name}
       width={300}
       height={300}
-      priority={priority}
-      onError={() => {
-        if (attempt >= AVATAR_RETRIES) return setFailed(true);
-        setTimeout(() => setAttempt(attempt + 1), AVATAR_RETRY_DELAYS_MS[attempt]);
-      }}
+      priority={eager}
+      onError={retry}
     />
   );
 }
 
-function toStatusKey(status: string): 'alive' | 'dead' | 'unknown' {
+function statusKey(status: string): CharacterStatus {
   const key = status.toLowerCase();
   return key === 'alive' || key === 'dead' ? key : 'unknown';
 }

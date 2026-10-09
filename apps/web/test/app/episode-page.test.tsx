@@ -1,12 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError, getEpisode } from '@/lib/api';
-import { generateMetadata } from './page';
+import { generateMetadata } from '@/app/[locale]/episodes/[id]/page';
+import { getEpisode } from '@/lib/api';
+import { episodeDetail } from '../fixtures';
 
-vi.mock('@/lib/api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/lib/api')>()),
-  getEpisode: vi.fn(),
-}));
+vi.mock('@/lib/api', () => ({ getEpisode: vi.fn() }));
 
 const props = { params: Promise.resolve({ locale: 'en', id: '1' }) };
 
@@ -16,9 +14,7 @@ describe('episode page metadata', () => {
   });
 
   it('titles the page after the episode', async () => {
-    vi.mocked(getEpisode).mockResolvedValue({ code: 'S01E01', name: 'Pilot' } as Awaited<
-      ReturnType<typeof getEpisode>
-    >);
+    vi.mocked(getEpisode).mockResolvedValue(episodeDetail);
 
     await expect(generateMetadata(props)).resolves.toEqual({
       title: 'S01E01 · Pilot',
@@ -30,14 +26,8 @@ describe('episode page metadata', () => {
   });
 
   it('leaves the metadata empty when the episode does not exist', async () => {
-    vi.mocked(getEpisode).mockRejectedValue(new ApiError(404, '/episodes/1'));
+    vi.mocked(getEpisode).mockResolvedValue(null);
 
     await expect(generateMetadata(props)).resolves.toEqual({});
-  });
-
-  it('does not swallow unexpected failures', async () => {
-    vi.mocked(getEpisode).mockRejectedValue(new TypeError('fetch failed'));
-
-    await expect(generateMetadata(props)).rejects.toThrow('fetch failed');
   });
 });

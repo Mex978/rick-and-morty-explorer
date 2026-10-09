@@ -1,4 +1,6 @@
 import type { Character, Episode, EpisodeDetail, Paginated } from '@rma/types';
+import { vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 export const episodes: Episode[] = [
   { id: 1, name: 'Pilot', airDate: 'December 2, 2013', code: 'S01E01', characterCount: 19 },
@@ -12,11 +14,14 @@ export const episodes: Episode[] = [
   },
 ];
 
-export function episodesPage(
-  overrides: Partial<Paginated<Episode>['info']> = {},
-): Paginated<Episode> {
+export const seasons = [
+  { season: 1, episodes: episodes.slice(0, 2) },
+  { season: 2, episodes: episodes.slice(2) },
+];
+
+export function episodesPage(info: Partial<Paginated<Episode>['info']> = {}): Paginated<Episode> {
   return {
-    info: { count: 51, pages: 3, currentPage: 1, hasNext: true, hasPrev: false, ...overrides },
+    info: { count: 51, pages: 3, currentPage: 1, hasNext: true, hasPrev: false, ...info },
     results: episodes,
   };
 }
@@ -58,3 +63,11 @@ export const characters: Character[] = [
 ];
 
 export const episodeDetail: EpisodeDetail = { ...episodes[0], characterCount: 3, characters };
+
+export function stubFetch(status: number, body: unknown): Mock {
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValue({ ok: status < 400, status, json: () => Promise.resolve(body) });
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+}

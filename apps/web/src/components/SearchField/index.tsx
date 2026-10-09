@@ -1,12 +1,11 @@
 'use client';
 
-import type { ComponentProps, FormEvent, Ref } from 'react';
+import type { ComponentProps, FormEvent } from 'react';
 
 import { Form, Input } from './styles';
 
-interface SearchFieldProps extends Omit<ComponentProps<'input'>, 'type' | 'ref' | 'onSubmit'> {
+interface SearchFieldProps extends Omit<ComponentProps<'input'>, 'type' | 'onSubmit'> {
   label: string;
-  ref?: Ref<HTMLInputElement>;
   onSubmit?: (event: FormEvent<HTMLFormElement>) => void;
 }
 

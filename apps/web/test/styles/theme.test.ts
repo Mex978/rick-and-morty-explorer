@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isThemeName } from './theme';
+import { isThemeName } from '@/styles/theme';
 
 describe('isThemeName', () => {
   it('accepts only the two known themes', () => {

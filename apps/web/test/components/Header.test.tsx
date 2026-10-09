@@ -1,20 +1,13 @@
+import { useSearchParams } from 'next/navigation';
 import { describe, expect, it, vi } from 'vitest';
 
-import { render, screen } from '../../../test/render';
-import { Header } from '.';
-
-vi.mock('next/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('next/navigation')>()),
-  useSearchParams: () => new URLSearchParams('page=2&q=rick'),
-}));
-
-vi.mock('@/i18n/navigation', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/i18n/navigation')>()),
-  usePathname: () => '/',
-}));
+import { Header } from '@/components/Header';
+import { render, screen } from '../render';
 
 describe('Header', () => {
   it('switches language keeping the current path and query', () => {
+    vi.mocked(useSearchParams).mockReturnValue(new URLSearchParams('page=2&q=rick') as never);
+
     render(<Header />);
 
     expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute(

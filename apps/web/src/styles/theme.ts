@@ -20,7 +20,7 @@ export const palettes = { light, dark };
 
 export const THEME_COOKIE = 'theme';
 
-export type ThemeName = keyof typeof palettes;
+type ThemeName = keyof typeof palettes;
 
 export function isThemeName(value: unknown): value is ThemeName {
   return value === 'light' || value === 'dark';

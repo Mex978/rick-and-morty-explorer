@@ -1,23 +1,38 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { render, screen } from '../../../test/render';
-import { ThemeToggle } from '.';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { render, screen } from '../render';
+
+const button = () => screen.getByRole('button', { name: 'Alternar tema' });
 
 describe('ThemeToggle', () => {
   beforeEach(() => {
     delete document.documentElement.dataset.theme;
     document.cookie = 'theme=; max-age=0';
-    vi.stubGlobal('matchMedia', () => ({ matches: false }));
     delete (document as { startViewTransition?: unknown }).startViewTransition;
+    vi.stubGlobal('matchMedia', () => ({ matches: false }));
   });
 
-  it('switches to dark when the system is light and remembers it', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('switches to dark when the system is light and remembers it in a cookie', () => {
     render(<ThemeToggle />);
 
-    screen.getByRole('button', { name: 'Alternar tema' }).click();
+    button().click();
 
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(document.cookie).toContain('theme=dark');
+  });
+
+  it('switches back to light on the next click', () => {
+    render(<ThemeToggle />);
+
+    button().click();
+    button().click();
+
+    expect(document.documentElement.dataset.theme).toBe('light');
   });
 
   it('reveals the new theme in a circle from the click when view transitions are supported', async () => {
@@ -29,7 +44,7 @@ describe('ThemeToggle', () => {
     });
     render(<ThemeToggle />);
 
-    screen.getByRole('button', { name: 'Alternar tema' }).click();
+    button().click();
     await Promise.resolve();
 
     expect(document.documentElement.dataset.theme).toBe('dark');
@@ -50,19 +65,9 @@ describe('ThemeToggle', () => {
     });
     render(<ThemeToggle />);
 
-    screen.getByRole('button', { name: 'Alternar tema' }).click();
+    button().click();
     await Promise.resolve();
 
     expect(document.documentElement.dataset.theme).toBe('dark');
-  });
-
-  it('switches back to light on the next click', () => {
-    render(<ThemeToggle />);
-    const button = screen.getByRole('button', { name: 'Alternar tema' });
-
-    button.click();
-    button.click();
-
-    expect(document.documentElement.dataset.theme).toBe('light');
   });
 });

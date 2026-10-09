@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { alternatesFor } from './metadata';
+import { alternatesFor } from '@/i18n/metadata';
 
 describe('alternatesFor', () => {
   it('points the canonical and every language to the same page', () => {
