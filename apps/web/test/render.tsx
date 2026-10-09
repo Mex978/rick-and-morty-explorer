@@ -7,7 +7,7 @@ import { ThemeProvider } from 'styled-components';
 import messages from '@/messages/pt-BR.json';
 import { theme } from '@/styles/theme';
 
-export { screen, within, fireEvent, act } from '@testing-library/react';
+export { screen, within, fireEvent, act, cleanup } from '@testing-library/react';
 
 export function render(ui: ReactElement): RenderResult {
   return baseRender(ui, {

@@ -71,3 +71,16 @@ export function stubFetch(status: number, body: unknown): Mock {
   vi.stubGlobal('fetch', fetchMock);
   return fetchMock;
 }
+
+// Enough characters to need more than one page, named so a filter can pick a slice of them.
+export function manyCharacters(count: number): Character[] {
+  return Array.from({ length: count }, (_, index) => {
+    const id = 100 + index;
+    return {
+      ...characters[0],
+      id,
+      name: `Clone ${String(index + 1).padStart(2, '0')}`,
+      image: `https://rickandmortyapi.com/api/character/avatar/${id}.jpeg`,
+    };
+  });
+}

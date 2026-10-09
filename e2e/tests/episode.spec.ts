@@ -26,3 +26,22 @@ test('filters the characters by name without leaving the page', async ({ page })
   await expect(page.getByRole('listitem').filter({ hasNotText: 'Smith' })).toHaveCount(0);
   await expect(page.getByRole('listitem').first()).toBeVisible();
 });
+
+test('pages through the characters and finds one from a later page', async ({ page }) => {
+  await page.goto('/pt-BR/episodes/1');
+  const items = page.getByRole('listitem');
+
+  await expect(items).toHaveCount(10);
+  await expect(page.getByRole('navigation', { name: 'Paginação' })).toContainText('Página 1 de 2');
+
+  await page.getByRole('button', { name: 'Próxima' }).click();
+
+  await expect(items).toHaveCount(9);
+  await expect(page.getByRole('navigation', { name: 'Paginação' })).toContainText('Página 2 de 2');
+
+  await page.getByRole('searchbox').fill('summer');
+
+  await expect(items).toHaveCount(1);
+  await expect(items.first()).toContainText('Summer Smith');
+  await expect(page.getByRole('navigation', { name: 'Paginação' })).toHaveCount(0);
+});
