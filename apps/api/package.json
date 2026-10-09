@@ -19,6 +19,7 @@
     "@nestjs/core": "^11.2.7",
     "@nestjs/platform-express": "^11.2.7",
     "@nestjs/terminus": "^11.1.1",
+    "@nestjs/throttler": "^6.7.1",
     "@rma/types": "workspace:*",
     "axios": "^1.20.0",
     "cache-manager": "^7.2.9",

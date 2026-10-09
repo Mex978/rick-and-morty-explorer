@@ -1,10 +1,13 @@
 import type { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import nock from 'nock';
 import request from 'supertest';
 
 import { AppModule } from '../src/app.module';
 import { setupApp } from '../src/app.setup';
+import { validateEnv } from '../src/config/env';
+import type { Env } from '../src/config/env';
 import { ProcessState } from '../src/health/process-state';
 import characters from './fixtures/characters.json';
 import episode from './fixtures/episode.json';
@@ -20,10 +23,21 @@ beforeAll(() => {
 });
 afterAll(() => nock.enableNetConnect());
 
+// The real module reads process.env once at import time, so suites that need another
+// configuration swap the ConfigService for one answering with the defaults plus their overrides.
+async function createApp(overrides: Partial<Env> = {}): Promise<INestApplication> {
+  const env = { ...validateEnv({}), ...overrides };
+  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+    .overrideProvider(ConfigService)
+    .useValue({ get: (key: keyof Env) => env[key] })
+    .compile();
+  const created = setupApp(moduleRef.createNestApplication());
+  await created.init();
+  return created;
+}
+
 beforeEach(async () => {
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-  app = setupApp(moduleRef.createNestApplication());
-  await app.init();
+  app = await createApp();
 });
 
 afterEach(async () => {
@@ -227,5 +241,58 @@ describe('operational endpoints', () => {
     expect(response.text).toContain(
       'upstream_request_duration_seconds_count{operation="getEpisodes",status="200"} 1',
     );
+  });
+});
+
+describe('rate limiting', () => {
+  let limited: INestApplication;
+
+  afterEach(() => limited.close());
+
+  it('answers 429 with a retry hint once a client exceeds the limit, leaving probes alone', async () => {
+    limited = await createApp({ THROTTLE_LIMIT: 2 });
+    nock(upstream).get('/episode').query({ page: 1 }).reply(200, episodes);
+
+    await request(limited.getHttpServer()).get('/api/v1/episodes').expect(200);
+    await request(limited.getHttpServer()).get('/api/v1/episodes').expect(200);
+    const rejected = await request(limited.getHttpServer()).get('/api/v1/episodes').expect(429);
+
+    expect(rejected.headers['retry-after']).toMatch(/^\d+$/);
+    expect(rejected.headers['cache-control']).toBeUndefined();
+    for (const path of ['/health', '/health/ready', '/metrics']) {
+      await request(limited.getHttpServer()).get(path).expect(200);
+    }
+  });
+
+  it('keys the limit on the forwarded ip only when a proxy is trusted', async () => {
+    limited = await createApp({ THROTTLE_LIMIT: 1, TRUST_PROXY_HOPS: 1 });
+    nock(upstream).get('/episode').query({ page: 1 }).reply(200, episodes);
+
+    await request(limited.getHttpServer())
+      .get('/api/v1/episodes')
+      .set('x-forwarded-for', '10.0.0.1')
+      .expect(200);
+    await request(limited.getHttpServer())
+      .get('/api/v1/episodes')
+      .set('x-forwarded-for', '10.0.0.2')
+      .expect(200);
+    await request(limited.getHttpServer())
+      .get('/api/v1/episodes')
+      .set('x-forwarded-for', '10.0.0.1')
+      .expect(429);
+  });
+
+  it('ignores a forwarded ip when no proxy is trusted, so it cannot be spoofed around', async () => {
+    limited = await createApp({ THROTTLE_LIMIT: 1 });
+    nock(upstream).get('/episode').query({ page: 1 }).reply(200, episodes);
+
+    await request(limited.getHttpServer())
+      .get('/api/v1/episodes')
+      .set('x-forwarded-for', '10.0.0.1')
+      .expect(200);
+    await request(limited.getHttpServer())
+      .get('/api/v1/episodes')
+      .set('x-forwarded-for', '10.0.0.2')
+      .expect(429);
   });
 });

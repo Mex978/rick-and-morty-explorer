@@ -8,6 +8,7 @@ import {
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
 import type { HealthCheckResult } from '@nestjs/terminus';
+import { SkipThrottle } from '@nestjs/throttler';
 
 import type { Env } from '../config/env';
 import { ProcessState } from './process-state';
@@ -18,6 +19,7 @@ const UPSTREAM_TIMEOUT_MS = 2000;
 // Liveness and readiness look only at this process: an upstream outage must neither restart a
 // healthy container nor pull every instance out of rotation while the cache can still answer.
 // The upstream has its own endpoint, for dashboards and alerts, never for gating traffic.
+@SkipThrottle()
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
   constructor(

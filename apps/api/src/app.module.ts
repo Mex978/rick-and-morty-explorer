@@ -2,6 +2,8 @@ import { CacheableMemory } from '@cacheable/memory';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import Keyv from 'keyv';
 
 import { validateEnv } from './config/env';
@@ -12,6 +14,7 @@ import { ObservabilityModule } from './observability/observability.module';
 
 // Cache keys are request urls, which carry user input, so the store is bounded.
 const MAX_CACHED_RESPONSES = 500;
+const THROTTLE_WINDOW_MS = 60_000;
 
 @Module({
   imports: [
@@ -29,9 +32,16 @@ const MAX_CACHED_RESPONSES = 500;
         };
       },
     }),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>) => ({
+        throttlers: [{ ttl: THROTTLE_WINDOW_MS, limit: config.get('THROTTLE_LIMIT') }],
+      }),
+    }),
     ObservabilityModule,
     HealthModule,
     EpisodesModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
