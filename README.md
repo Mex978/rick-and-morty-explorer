@@ -263,7 +263,7 @@ Everything runs locally; no external service is involved.
 
 Every response carries an `x-request-id` (reused when the caller sends one), and each request is logged with method, url, status, duration and cache result. With `NODE_ENV=production` the Nest logger writes JSON lines, ready for any log collector. Routes are logged by pattern (`/api/v1/episodes/:id`) so metric cardinality stays bounded whatever the ids or search terms.
 
-The Grafana dashboard provisioned by Docker Compose shows requests per second and p95 latency by route, responses by status, cache hit ratio, upstream latency by operation and process memory. Traces were left out on purpose: they need a backend to be useful, and the request id already correlates a response with its log line.
+The Grafana dashboard provisioned by Docker Compose shows requests per second and p95 latency by route, responses by status, the BFF cache hit ratio with hits and misses over time, upstream latency by operation and process memory. The cache panels count the BFF's own cache only: the Next.js data cache sits in front of it, so revisiting a page in the browser usually never reaches the API. To see hits, call the API directly twice, for example `curl -D - -o /dev/null http://localhost:3001/api/v1/episodes/1`, and watch `X-Cache` go from `MISS` to `HIT`. Traces were left out on purpose: they need a backend to be useful, and the request id already correlates a response with its log line.
 
 ## Decisions
 
