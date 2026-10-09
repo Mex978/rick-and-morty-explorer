@@ -4,6 +4,10 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
   RICK_AND_MORTY_API_URL: z.url().default('https://rickandmortyapi.com/api'),
   CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  // Requests per minute per client ip. Sized for a server-side consumer such as the Next.js app.
+  THROTTLE_LIMIT: z.coerce.number().int().positive().default(300),
+  // Proxies in front of the api whose X-Forwarded-For is trusted; 0 when clients connect directly.
+  TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(0),
   // How long readiness reports down before the server stops, so a balancer can drain traffic.
   SHUTDOWN_DRAIN_MS: z.coerce.number().int().nonnegative().default(0),
 });
