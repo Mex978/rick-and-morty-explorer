@@ -14,6 +14,7 @@ import type { MonoTypeOperatorFunction } from 'rxjs';
 
 import { MetricsService } from '../observability/metrics.service';
 import type { RawCharacter, RawEpisode, RawPaginated } from './rick-and-morty.types';
+import { Semaphore } from './semaphore';
 
 // 429 is left out: the upstream asks for ~10s, longer than a page should wait.
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
@@ -37,6 +38,8 @@ export class RickAndMortyClient {
   constructor(
     private readonly http: HttpService,
     private readonly metrics: MetricsService,
+    // The upstream rate-limits bursts, so calls to it are bounded here and the rest queue up.
+    private readonly slots: Semaphore,
   ) {}
 
   getEpisodes(page: number, name?: string): Promise<RawPaginated<RawEpisode>> {
@@ -63,7 +66,16 @@ export class RickAndMortyClient {
     return Array.isArray(data) ? data : [data];
   }
 
-  private async get<T>(
+  private get<T>(
+    operation: string,
+    path: string,
+    params?: Record<string, string | number>,
+  ): Promise<T> {
+    if (this.slots.isFull) this.metrics.upstreamRequestsQueued.inc();
+    return this.slots.run(() => this.request<T>(operation, path, params));
+  }
+
+  private async request<T>(
     operation: string,
     path: string,
     params?: Record<string, string | number>,

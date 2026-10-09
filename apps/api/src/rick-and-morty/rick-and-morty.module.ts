@@ -6,7 +6,10 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { Env } from '../config/env';
+import { EPISODE_SOURCE } from '../episodes/episode-source';
 import { RickAndMortyClient } from './rick-and-morty.client';
+import { RickAndMortyEpisodeSource } from './rick-and-morty.episode-source';
+import { Semaphore } from './semaphore';
 
 @Module({
   imports: [
@@ -20,7 +23,16 @@ import { RickAndMortyClient } from './rick-and-morty.client';
       }),
     }),
   ],
-  providers: [RickAndMortyClient],
-  exports: [RickAndMortyClient],
+  providers: [
+    {
+      provide: Semaphore,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>) =>
+        new Semaphore(config.get('UPSTREAM_CONCURRENCY')),
+    },
+    RickAndMortyClient,
+    { provide: EPISODE_SOURCE, useClass: RickAndMortyEpisodeSource },
+  ],
+  exports: [EPISODE_SOURCE],
 })
 export class RickAndMortyModule {}

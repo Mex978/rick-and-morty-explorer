@@ -51,7 +51,7 @@ describe('GET /api/v1/episodes', () => {
 
     const response = await request(app.getHttpServer()).get('/api/v1/episodes').expect(200);
 
-    expect(response.headers['cache-control']).toBe('public, max-age=3600');
+    expect(response.headers['cache-control']).toBe('public, max-age=86400');
     expect(response.body.info).toEqual({
       count: 51,
       pages: 3,
@@ -170,7 +170,7 @@ describe('GET /api/v1/episodes', () => {
     expect(nock.pendingMocks()).toEqual([]);
     expect(second.body.results).toHaveLength(2);
     expect(second.headers['x-cache']).toBe('HIT');
-    expect(second.headers['cache-control']).toBe('public, max-age=3600');
+    expect(second.headers['cache-control']).toBe('public, max-age=86400');
   });
 });
 
