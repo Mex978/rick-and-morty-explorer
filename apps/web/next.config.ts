@@ -8,8 +8,10 @@ const config: NextConfig = {
   compiler: {
     styledComponents: true,
   },
+  // Avatars are small JPEGs already served by the upstream's CDN. Optimizing them would funnel every user's
+  // image traffic through this server's single IP, which the upstream rate-limits, and buys nothing on a 300px thumbnail.
   images: {
-    remotePatterns: [{ protocol: 'https', hostname: 'rickandmortyapi.com' }],
+    unoptimized: true,
   },
   logging: {
     fetches: { fullUrl: true },
