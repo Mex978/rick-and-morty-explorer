@@ -99,6 +99,8 @@ cp apps/web/.env.example apps/web/.env
 | `PORT`                   | api | `3001`                            | HTTP port                                |
 | `RICK_AND_MORTY_API_URL` | api | `https://rickandmortyapi.com/api` | upstream base URL                        |
 | `CACHE_TTL_SECONDS`      | api | `3600`                            | in-memory cache and `Cache-Control`      |
+| `THROTTLE_LIMIT`         | api | `300`                             | requests per minute per client ip        |
+| `TRUST_PROXY_HOPS`       | api | `0`                               | proxies whose `X-Forwarded-For` to trust |
 | `SHUTDOWN_DRAIN_MS`      | api | `0`                               | readiness is down this long before close |
 | `NODE_ENV`               | api | unset                             | `production` switches logs to JSON lines |
 | `API_URL`                | web | `http://localhost:3001`           | where the Next.js server finds the BFF   |
@@ -172,11 +174,11 @@ pnpm --filter @rma/api test
 pnpm --filter @rma/web exec vitest
 ```
 
-| Layer | Tool                    | What it covers                                                                                                                                                                                                                                                   |
-| ----- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, the shutdown drain, and an integration test booting the app through the same setup as `main.ts` for the routes, validation, health, metrics and request ids |
-| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                                                              |
-| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404                                                                                                                                                         |
+| Layer | Tool                    | What it covers                                                                                                                                                                                                                                                               |
+| ----- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, the shutdown drain, and an integration test booting the app through the same setup as `main.ts` for the routes, validation, health, metrics, rate limit and request ids |
+| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                                                                          |
+| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404                                                                                                                                                                     |
 
 `pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
 
@@ -239,6 +241,7 @@ Base path: `/api/v1`. Successful responses carry `Cache-Control: public, max-age
 | `GET /episodes/:id`              | `EpisodeDetail`      |
 
 - `page` and `:id` must be positive integers and `name` at most 100 characters; anything else, including a repeated parameter, is a 400.
+- Each client ip gets `THROTTLE_LIMIT` requests per minute; past that the answer is a 429 with `Retry-After`. Health and metrics are not counted.
 - A `name` with no matches returns an empty first page; any `page` past the last one, with or without `name`, is a 404.
 - `EpisodeDetail` carries the characters already sorted by name; the frontend never sorts.
 
@@ -276,6 +279,7 @@ The Grafana dashboard provisioned by Docker Compose shows requests per second an
 - **Search lives in the URL.** Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is a shareable link. Characters are filtered on the client because the whole episode is already on the page.
 - **Themes are CSS variables.** A `data-theme` attribute toggles them, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme and switching re-renders nothing. Browsers with the View Transitions API reveal the new theme in a circle from the click. Reading the cookie makes every page dynamic, which is fine: caching happens at the data layer, not at the HTML.
 - **Health looks at this process, never at the upstream.** An outage of the public API must neither restart a healthy container nor pull every instance out of rotation while the cache can still answer, so neither liveness nor readiness pings it; `/health/upstream` exists for alerting. Readiness does turn down when a shutdown starts: with `SHUTDOWN_DRAIN_MS` set, the process keeps serving for that long so the balancer notices before the server closes.
+- **The BFF limits each client.** `THROTTLE_LIMIT` requests per minute per ip, answered with 429 and `Retry-After`. The Next.js server is one client with one ip as far as the BFF can tell, and its data cache means the BFF only sees misses, so the default is sized for a server, not a visitor. A per-visitor limit belongs at the edge, where the visitor's ip is visible. Behind a balancer, `TRUST_PROXY_HOPS` tells express how many `X-Forwarded-For` entries to believe; left at zero, a forged header cannot buy a fresh quota.
 - **The public API is treated as a shared, rate-limited resource.** The BFF retries transient 5xx twice with a short backoff and answers 503 on a 429 instead of waiting out the upstream's ten-second retry window. Each route has its own `loading.tsx` skeleton, which also bounds what a link prefetch fetches: the skeleton, never the data, so twenty visible cards do not turn into twenty upstream calls.
 - **Avatars load straight from the upstream CDN.** `next/image` still handles sizing, lazy loading and the `priority` preload of the first row, but with `unoptimized` set: optimizing a 300px JPEG saves nothing, and routing every user's image traffic through one server IP is exactly what the upstream rate-limits, which showed up as broken images on refresh. A page with 60 avatars is still a burst for the CDN, so an avatar that fails is retried after a few seconds and then replaced by a placeholder with the character's initial.
 - **Visited pages stay in the client router cache for a minute** (`staleTimes.dynamic`), so going back to an episode is instant instead of showing its skeleton again. The flag is still marked experimental by Next.js; the content never changes, so a minute of staleness is free.
@@ -287,6 +291,6 @@ The two apps deploy differently, and that is deliberate.
 
 **Web on Vercel.** Import the repository, set the root directory to `apps/web` and the build command to `pnpm turbo build --filter=@rma/web` (Turborepo builds `packages/types` first; pnpm and the workspace are detected automatically). Set `API_URL` to the public URL of the API and `SITE_URL` to the Vercel domain. The `standalone` output used by the Dockerfile is harmless there.
 
-**API in a container.** The BFF keeps an in-memory cache and keep-alive connections, which only pay off in a long-running process, so it is not a fit for serverless functions. The Dockerfile at `apps/api/Dockerfile` runs on any container host (Render, Fly.io, Railway, Cloud Run); expose `PORT`, set `CACHE_TTL_SECONDS` if the default hour is not what you want, and `SHUTDOWN_DRAIN_MS` below the platform's stop grace period. Point the liveness probe at `/health` and the readiness probe at `/health/ready`.
+**API in a container.** The BFF keeps an in-memory cache and keep-alive connections, which only pay off in a long-running process, so it is not a fit for serverless functions. The Dockerfile at `apps/api/Dockerfile` runs on any container host (Render, Fly.io, Railway, Cloud Run); expose `PORT`, set `CACHE_TTL_SECONDS` if the default hour is not what you want, set `TRUST_PROXY_HOPS=1` when a balancer sits in front, and `SHUTDOWN_DRAIN_MS` below the platform's stop grace period. Point the liveness probe at `/health` and the readiness probe at `/health/ready`.
 
 MIT
