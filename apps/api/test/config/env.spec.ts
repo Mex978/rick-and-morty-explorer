@@ -6,6 +6,7 @@ describe('validateEnv', () => {
       PORT: 4000,
       RICK_AND_MORTY_API_URL: 'https://rickandmortyapi.com/api',
       CACHE_TTL_SECONDS: 3600,
+      SHUTDOWN_DRAIN_MS: 0,
     });
   });
 

@@ -14,6 +14,8 @@ async function bootstrap() {
   );
   const config = app.get(ConfigService<Env, true>);
 
+  // SIGTERM runs the shutdown hooks, so readiness turns down and the drain happens before the server closes.
+  app.enableShutdownHooks();
   await app.listen(config.get('PORT'));
 }
 

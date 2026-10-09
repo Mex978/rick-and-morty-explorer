@@ -5,6 +5,7 @@ import request from 'supertest';
 
 import { AppModule } from '../src/app.module';
 import { setupApp } from '../src/app.setup';
+import { ProcessState } from '../src/health/process-state';
 import characters from './fixtures/characters.json';
 import episode from './fixtures/episode.json';
 import episodes from './fixtures/episodes.json';
@@ -163,18 +164,34 @@ describe('operational endpoints', () => {
     expect(Object.keys(response.body.info)).toEqual(['memory_heap']);
   });
 
-  it('reports ready when the upstream answers', async () => {
-    nock(upstream).get('/episode/1').reply(200, episode);
-
+  it('reports ready without touching the upstream', async () => {
     const response = await request(app.getHttpServer()).get('/health/ready').expect(200);
 
-    expect(Object.keys(response.body.info)).toEqual(['memory_heap', 'upstream']);
+    expect(Object.keys(response.body.info)).toEqual(['memory_heap', 'process']);
+    expect(nock.pendingMocks()).toEqual([]);
   });
 
-  it('reports not ready when the upstream is down', async () => {
+  it('reports not ready once the shutdown started, while still serving', async () => {
+    await app.get(ProcessState).beforeApplicationShutdown();
+
+    const ready = await request(app.getHttpServer()).get('/health/ready').expect(503);
+    await request(app.getHttpServer()).get('/health').expect(200);
+
+    expect(ready.body.error.process).toEqual({ status: 'down', message: 'shutting down' });
+  });
+
+  it('reports the upstream up when it answers', async () => {
+    nock(upstream).get('/episode/1').reply(200, episode);
+
+    const response = await request(app.getHttpServer()).get('/health/upstream').expect(200);
+
+    expect(Object.keys(response.body.info)).toEqual(['upstream']);
+  });
+
+  it('reports the upstream down when it fails', async () => {
     nock(upstream).get('/episode/1').reply(503);
 
-    const response = await request(app.getHttpServer()).get('/health/ready').expect(503);
+    const response = await request(app.getHttpServer()).get('/health/upstream').expect(503);
 
     expect(response.body.error.upstream.status).toBe('down');
   });
