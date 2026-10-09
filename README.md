@@ -2,13 +2,30 @@
 
 Browse and search the episodes of Rick and Morty and see the characters of each one in alphabetical order, built on the public [Rick and Morty API](https://rickandmortyapi.com/documentation). Available in Portuguese and English, light and dark.
 
+- [How it works](#how-it-works)
+- [Stack](#stack)
+- [Getting started](#getting-started)
+- [Running with Docker](#running-with-docker)
+- [Running the tests](#running-the-tests)
+- [Scripts](#scripts)
+- [Project structure](#project-structure)
+- [API](#api)
+- [Observability](#observability)
+- [Decisions](#decisions)
+- [Deployment](#deployment)
+
+## How it works
+
 ```
 browser ──▶ Next.js (server components) ──▶ NestJS BFF ──▶ rickandmortyapi.com
               renders HTML, caches data     batches, sorts,
               per URL for one hour          caches in memory
 ```
 
-The browser only ever talks to Next.js. Next.js fetches from the BFF on the server, and the BFF is the single place that knows the upstream exists.
+The browser only ever talks to Next.js. Next.js fetches from the BFF on the server, and the BFF is the single place that knows the upstream exists. Two screens, one request each:
+
+1. `/` lists the episodes grouped by season, paginated, with a search box.
+2. `/episodes/:id` shows one episode with its characters sorted by name, with a filter.
 
 ## Stack
 
@@ -23,55 +40,163 @@ The browser only ever talks to Next.js. Next.js fetches from the BFF on the serv
 | Observability | prom-client and Terminus in the api; Prometheus and Grafana in Docker Compose |
 | Containers    | Docker multi-stage builds pruned with Turborepo, Docker Compose               |
 
-## Running locally
+## Getting started
 
-Requires Node 22 or newer (`.nvmrc` pins 24, which CI uses) and pnpm 10.
+### Prerequisites
+
+- Node.js 22 or newer. `.nvmrc` pins 24, which CI uses; with nvm, run `nvm use` in the repository root.
+- pnpm 10. With Node 22+, `corepack enable` is enough: the version is pinned in `package.json`.
+- Docker Desktop, only for the [Docker section](#running-with-docker).
+
+### 1. Install
 
 ```bash
+git clone <this repository>
+cd rick-and-morty-explorer
 pnpm install
+```
+
+### 2. Run
+
+Both apps at once, in watch mode:
+
+```bash
 pnpm dev
 ```
 
-The web app runs on http://localhost:3000 and the API on http://localhost:3001.
+Or each one on its own terminal:
 
-Or with Docker, which builds both apps and also brings up Prometheus and a Grafana dashboard:
+```bash
+pnpm --filter @rma/api dev
+```
+
+```bash
+pnpm --filter @rma/web dev
+```
+
+The API needs `packages/types` built once (`pnpm dev` and `pnpm build` do it through Turborepo; on its own run `pnpm --filter @rma/types build` first).
+
+### 3. Open
+
+| What    | URL                                                              |
+| ------- | ---------------------------------------------------------------- |
+| Web app | http://localhost:3000 (redirects to `/pt-BR`; `/en` for English) |
+| API     | http://localhost:3001/api/v1/episodes                            |
+| Health  | http://localhost:3001/health                                     |
+| Metrics | http://localhost:3001/metrics                                    |
+
+### Environment variables
+
+Every variable has a working default, so `.env` files are optional. To change one, copy the example file next to the app and edit it:
+
+```bash
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+```
+
+| Variable                 | App | Default                           | Purpose                                  |
+| ------------------------ | --- | --------------------------------- | ---------------------------------------- |
+| `PORT`                   | api | `3001`                            | HTTP port                                |
+| `RICK_AND_MORTY_API_URL` | api | `https://rickandmortyapi.com/api` | upstream base URL                        |
+| `CACHE_TTL_SECONDS`      | api | `3600`                            | in-memory cache and `Cache-Control`      |
+| `NODE_ENV`               | api | unset                             | `production` switches logs to JSON lines |
+| `API_URL`                | web | `http://localhost:3001`           | where the Next.js server finds the BFF   |
+| `SITE_URL`               | web | `http://localhost:3000`           | base for canonical and hreflang links    |
+
+## Running with Docker
+
+Docker is optional. The application runs on its own with `pnpm dev`, and `/health` and `/metrics` are served by the API either way. The compose stack builds both apps as production images and adds Prometheus and Grafana around them, so you can see the metrics on a dashboard without installing anything else.
+
+Stop `pnpm dev` first, since both use ports 3000 and 3001. Then, from the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-| Service    | URL                                                            |
-| ---------- | -------------------------------------------------------------- |
-| web        | http://localhost:3000                                          |
-| api        | http://localhost:3001                                          |
-| Prometheus | http://localhost:9090                                          |
-| Grafana    | http://localhost:3002 (anonymous admin, dashboard provisioned) |
+The first build takes a few minutes; later runs reuse the layers. When the logs settle, four services are up:
 
-Docker is optional: `pnpm dev` runs the application on its own, and `/health` and `/metrics` are served by the API either way. The compose stack only adds Prometheus and Grafana around it.
+| Service      | URL                   | What it is                                                                                       |
+| ------------ | --------------------- | ------------------------------------------------------------------------------------------------ |
+| `web`        | http://localhost:3000 | the Next.js app, production build, talking to `api` over the compose network                     |
+| `api`        | http://localhost:3001 | the NestJS BFF, production build, JSON logs, with a container health check on `/health`          |
+| `prometheus` | http://localhost:9090 | scrapes `api:3001/metrics` every 5 seconds; under Status → Targets the `api` job should be `UP`  |
+| `grafana`    | http://localhost:3002 | opens without login; the dashboard "Rick and Morty Explorer API" is provisioned under Dashboards |
 
-Every variable has a working default, so `.env` files are optional; copy `apps/api/.env.example` or `apps/web/.env.example` to `.env` next to it when you need to change one.
+To see the dashboard move, browse the app on port 3000 for a minute and come back to Grafana. Useful commands:
 
-| Variable                 | App | Default                           | Purpose                                |
-| ------------------------ | --- | --------------------------------- | -------------------------------------- |
-| `PORT`                   | api | `3001`                            | HTTP port                              |
-| `RICK_AND_MORTY_API_URL` | api | `https://rickandmortyapi.com/api` | upstream base URL                      |
-| `CACHE_TTL_SECONDS`      | api | `3600`                            | in-memory cache and `Cache-Control`    |
-| `API_URL`                | web | `http://localhost:3001`           | where the Next.js server finds the BFF |
-| `SITE_URL`               | web | `http://localhost:3000`           | base for canonical and hreflang links  |
+```bash
+docker compose logs -f api
+```
+
+```bash
+docker compose down
+```
+
+```bash
+docker compose build --no-cache
+```
+
+What is where:
+
+- `apps/api/Dockerfile` and `apps/web/Dockerfile`: multi-stage builds. `turbo prune` keeps only the workspace packages each app needs, dependencies install in their own layer, the runtime image runs as a non-root user and contains only the build output and production dependencies (Next uses its `standalone` output).
+- `docker-compose.yml`: the four services above, with `web` waiting for `api` to be healthy.
+- `docker/prometheus/prometheus.yml`: the scrape config.
+- `docker/grafana/`: datasource and dashboard provisioning, so Grafana comes up configured.
+
+## Running the tests
+
+Unit and integration tests for both apps, with coverage:
+
+```bash
+pnpm test
+```
+
+End to end with Playwright, against the real public API. It builds both apps, starts them on ports 3100 and 3101 (so it can run next to `pnpm dev`) and tears them down at the end. The first run needs the browser:
+
+```bash
+pnpm --filter @rma/e2e exec playwright install chromium
+```
+
+```bash
+pnpm e2e
+```
+
+One app at a time, or in watch mode:
+
+```bash
+pnpm --filter @rma/api test
+```
+
+```bash
+pnpm --filter @rma/web exec vitest
+```
+
+| Layer | Tool                    | What it covers                                                                                                                                                                                                                   |
+| ----- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
+| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                              |
+| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch                                                                                                                                         |
+
+`pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
+
+The e2e job in CI is blocking, with two retries to absorb public API hiccups, and runs serially because the upstream rate-limits bursts. The Playwright report is uploaded on failure.
 
 ## Scripts
 
-| Script           | What it does                                                                                                     |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`       | api and web in watch mode                                                                                        |
-| `pnpm test`      | unit and integration tests with coverage thresholds                                                              |
-| `pnpm e2e`       | production builds, then Playwright against the real API on ports 3100 and 3101, so it can run next to `pnpm dev` |
-| `pnpm lint`      | ESLint on every package                                                                                          |
-| `pnpm format`    | Prettier on the whole repo (`format:check` runs in CI)                                                           |
-| `pnpm typecheck` | `tsc --noEmit` on every package                                                                                  |
-| `pnpm build`     | production builds                                                                                                |
+All from the repository root.
 
-Commits follow Conventional Commits, checked by commitlint; staged files are formatted on commit.
+| Script              | What it does                                              |
+| ------------------- | --------------------------------------------------------- |
+| `pnpm dev`          | api and web in watch mode                                 |
+| `pnpm build`        | production builds of every package                        |
+| `pnpm test`         | unit and integration tests with coverage thresholds       |
+| `pnpm e2e`          | production builds, then Playwright on ports 3100 and 3101 |
+| `pnpm lint`         | ESLint on every package                                   |
+| `pnpm typecheck`    | `tsc --noEmit` on every package                           |
+| `pnpm format`       | Prettier on the whole repo                                |
+| `pnpm format:check` | verifies formatting; runs in CI                           |
+
+Commits follow Conventional Commits, checked by commitlint; staged files are formatted on commit. CI runs format check, lint, typecheck, tests, builds, the Docker images and the e2e suite on every push to `main` and `develop` and on pull requests.
 
 ## Project structure
 
@@ -80,19 +205,23 @@ apps/
   api/
     src/episodes/        controller, service, pure mapper and their tests
     src/rick-and-morty/  the only code that knows the upstream exists
+    src/observability/   metrics registry, request logging, /metrics
+    src/health/          /health with Terminus
     test/                integration test booting the whole app
+    Dockerfile
   web/
     src/app/[locale]/    routes, metadata, loading and error states
     src/features/        episodes (list + search) and episode (detail)
     src/components/      Header, Pagination, SearchField, ThemeToggle
     src/i18n/            routing, request config, navigation, metadata
     src/messages/        pt-BR.json, en.json
+    Dockerfile
 packages/
   types/                 Episode, EpisodeDetail, Character, Paginated
   tsconfig/, eslint-config/
 e2e/                     Playwright specs
 docker/                  Prometheus config, Grafana datasource and dashboard
-apps/*/Dockerfile, docker-compose.yml
+docker-compose.yml
 .github/workflows/ci.yml
 ```
 
@@ -110,6 +239,18 @@ Base path: `/api/v1`. Successful responses carry `Cache-Control: public, max-age
 - `page` must be a positive integer and `name` at most 100 characters; anything else, including a repeated parameter, is a 400.
 - A `name` with no matches returns an empty page; a `page` past the last one is a 404.
 - `EpisodeDetail` carries the characters already sorted by name; the frontend never sorts.
+
+Try it:
+
+```bash
+curl -s "http://localhost:3001/api/v1/episodes?page=1" | head -c 400
+```
+
+```bash
+curl -s -D - -o /dev/null http://localhost:3001/api/v1/episodes/1
+```
+
+The second call shows `X-Cache`, `Cache-Control` and `x-request-id` headers; repeat it and `X-Cache` turns from `MISS` to `HIT`.
 
 ## Observability
 
@@ -134,23 +275,6 @@ The Grafana dashboard provisioned by Docker Compose shows requests per second an
 - **Themes are CSS variables.** A `data-theme` attribute toggles them, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme and switching re-renders nothing. Browsers with the View Transitions API reveal the new theme in a circle from the click. Reading the cookie makes every page dynamic, which is fine: caching happens at the data layer, not at the HTML.
 - **The public API is treated as a shared, rate-limited resource.** The BFF retries 429 and transient 5xx twice with a short backoff, and episode cards do not prefetch their detail page, because prefetching twenty of them at once is exactly the burst that trips the limit.
 - **next-intl for routing, messages, plurals and dates.** A test guarantees both locales have the same keys and the same ICU arguments.
-
-## Testing
-
-| Layer | Tool                    | What it covers                                                                                                                                                                                                       |
-| ----- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping, env validation, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
-| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                  |
-| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, against the real API                                                                                                       |
-
-`pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
-
-The e2e job in CI is blocking, with two retries to absorb public API hiccups, and runs serially because the upstream rate-limits bursts. The Playwright report is uploaded on failure.
-
-```bash
-pnpm test
-pnpm e2e
-```
 
 ## Deployment
 
