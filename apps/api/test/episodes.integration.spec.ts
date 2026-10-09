@@ -225,6 +225,13 @@ describe('operational endpoints', () => {
     expect(response.text).not.toContain('nope');
   });
 
+  it('exposes both cache outcomes from the start, so the first event after a restart counts', async () => {
+    const response = await request(app.getHttpServer()).get('/metrics').expect(200);
+
+    expect(response.text).toContain('cache_events_total{result="hit"} 0');
+    expect(response.text).toContain('cache_events_total{result="miss"} 0');
+  });
+
   it('exposes prometheus metrics for handled requests, cache and upstream calls', async () => {
     nock(upstream).get('/episode').query({ page: 1 }).once().reply(200, episodes);
     await request(app.getHttpServer()).get('/api/v1/episodes').expect(200);
