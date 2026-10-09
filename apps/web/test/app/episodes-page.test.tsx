@@ -30,6 +30,12 @@ describe('EpisodesPage', () => {
     expect(page.props).toEqual({ page: 2, query: 'rick' });
   });
 
+  it('cuts the query at the length the api accepts', async () => {
+    const page = await EpisodesPage(props({ q: 'x'.repeat(150) }));
+
+    expect(page.props).toEqual({ page: 1, query: 'x'.repeat(100) });
+  });
+
   it.each(['0', '-1', '1.5', 'abc'])('renders the not found page for page=%s', async (page) => {
     await expect(EpisodesPage(props({ page }))).rejects.toMatchObject({
       digest: expect.stringContaining('404'),

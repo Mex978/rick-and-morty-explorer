@@ -26,11 +26,17 @@ describe('Episode', () => {
     );
   });
 
-  it.each([404, 400])('renders the not found page when the api answers %s', async (status) => {
-    stubFetch(status, { message: 'nope' });
+  it('renders the not found page when the api answers 404', async () => {
+    stubFetch(404, { message: 'nope' });
 
     await expect(Episode({ id: 999 })).rejects.toMatchObject({
       digest: expect.stringContaining('404'),
     });
+  });
+
+  it('lets any other failure reach the error boundary', async () => {
+    stubFetch(400, { message: 'nope' });
+
+    await expect(Episode({ id: 999 })).rejects.toThrow('API responded 400');
   });
 });

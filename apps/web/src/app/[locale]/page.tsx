@@ -3,14 +3,14 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 
 import { Episodes } from '@/features/episodes';
+import { MAX_QUERY_LENGTH } from '@/features/episodes/data';
 import { alternatesFor } from '@/i18n/metadata';
+import { first, positiveInt } from '@/lib/params';
 
 interface Props {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string | string[]; q?: string | string[] }>;
 }
-
-const first = (value?: string | string[]) => (Array.isArray(value) ? value[0] : value);
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -26,9 +26,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function EpisodesPage({ searchParams }: Props) {
   const { page = '1', q = '' } = await searchParams;
-  const pageNumber = Number(first(page));
+  const pageNumber = positiveInt(first(page));
 
-  if (!Number.isInteger(pageNumber) || pageNumber < 1) notFound();
+  if (pageNumber === null) notFound();
 
-  return <Episodes page={pageNumber} query={first(q)?.trim() ?? ''} />;
+  return <Episodes page={pageNumber} query={(first(q) ?? '').trim().slice(0, MAX_QUERY_LENGTH)} />;
 }
