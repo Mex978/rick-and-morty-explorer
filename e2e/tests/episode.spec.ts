@@ -9,6 +9,7 @@ test('opens an episode and lists its characters in alphabetical order', async ({
   await expect(page.getByRole('heading', { level: 1, name: 'Pilot' })).toBeVisible();
 
   const names = await page
+    .getByRole('list', { name: 'Personagens' })
     .getByRole('listitem')
     .getByRole('img')
     .evaluateAll((images) => images.map((img) => img.getAttribute('alt')));
@@ -23,13 +24,14 @@ test('filters the characters by name without leaving the page', async ({ page })
   await page.getByRole('searchbox').fill('smith');
 
   await expect(page).toHaveURL(/\/pt-BR\/episodes\/1$/);
-  await expect(page.getByRole('listitem').filter({ hasNotText: 'Smith' })).toHaveCount(0);
-  await expect(page.getByRole('listitem').first()).toBeVisible();
+  const characters = page.getByRole('list', { name: 'Personagens' }).getByRole('listitem');
+  await expect(characters.filter({ hasNotText: 'Smith' })).toHaveCount(0);
+  await expect(characters.first()).toBeVisible();
 });
 
 test('pages through the characters and finds one from a later page', async ({ page }) => {
   await page.goto('/pt-BR/episodes/1');
-  const items = page.getByRole('listitem');
+  const items = page.getByRole('list', { name: 'Personagens' }).getByRole('listitem');
 
   await expect(items).toHaveCount(10);
   await expect(page.getByRole('navigation', { name: 'Paginação' })).toContainText('Página 1 de 2');
