@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    # Rebuild on every `up`, so the containers always run the code on disk.
+    pull_policy: build
     ports:
       - '3001:3001'
     environment:
@@ -14,6 +16,7 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+    pull_policy: build
     ports:
       - '3000:3000'
     environment:
