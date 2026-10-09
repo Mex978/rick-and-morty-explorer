@@ -15,7 +15,7 @@ export class ObservabilityModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(RequestLoggerMiddleware)
-      .exclude('metrics', 'health', 'health/ready')
+      .exclude('metrics', 'health', 'health/ready', 'health/upstream')
       .forRoutes('*path');
   }
 }
