@@ -1,4 +1,4 @@
-import { validateEnv } from './env';
+import { validateEnv } from '../../src/config/env';
 
 describe('validateEnv', () => {
   it('applies defaults and coerces numbers', () => {

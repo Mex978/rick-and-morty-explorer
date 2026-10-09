@@ -1,11 +1,11 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { RickAndMortyClient } from '../rick-and-morty/rick-and-morty.client';
-import characters from '../../test/fixtures/characters.json';
-import episode from '../../test/fixtures/episode.json';
-import episodes from '../../test/fixtures/episodes.json';
-import { EpisodesService } from './episodes.service';
+import { RickAndMortyClient } from '../../src/rick-and-morty/rick-and-morty.client';
+import characters from '../fixtures/characters.json';
+import episode from '../fixtures/episode.json';
+import episodes from '../fixtures/episodes.json';
+import { EpisodesService } from '../../src/episodes/episodes.service';
 
 describe('EpisodesService', () => {
   let service: EpisodesService;
