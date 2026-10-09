@@ -3,16 +3,16 @@
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
-import { Block, Card, Grid, Status, VisuallyHidden } from './styles';
+import { Block, Card, Content, Grid, VisuallyHidden } from './styles';
 
 export function Skeleton({ children }: { children: ReactNode }) {
   const t = useTranslations();
 
   return (
-    <Status role="status" aria-busy="true">
+    <div role="status" aria-busy="true">
       <VisuallyHidden>{t('loading')}</VisuallyHidden>
-      <div aria-hidden="true">{children}</div>
-    </Status>
+      <Content aria-hidden="true">{children}</Content>
+    </div>
   );
 }
 
