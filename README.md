@@ -203,11 +203,11 @@ Commits follow Conventional Commits, checked by commitlint; staged files are for
 ```
 apps/
   api/
-    src/episodes/        controller, service, pure mapper and their tests
+    src/episodes/        controller, service, pure mapper
     src/rick-and-morty/  the only code that knows the upstream exists
     src/observability/   metrics registry, request logging, /metrics
     src/health/          /health with Terminus
-    test/                integration test booting the whole app
+    test/                Jest suites mirroring src, fixtures and the integration test
     Dockerfile
   web/
     src/app/[locale]/    routes, metadata, skeleton loading and error states
