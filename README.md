@@ -26,14 +26,14 @@ The `.env` files are optional: every variable has a working default. The web app
 
 ## Scripts
 
-| Script | What it does |
-| --- | --- |
-| `pnpm dev` | starts api and web in watch mode |
-| `pnpm test` | unit and integration tests of api and web |
-| `pnpm e2e` | builds everything and runs Playwright against the real API |
-| `pnpm lint` | ESLint on every package |
-| `pnpm typecheck` | `tsc --noEmit` on every package |
-| `pnpm build` | production builds |
+| Script           | What it does                                               |
+| ---------------- | ---------------------------------------------------------- |
+| `pnpm dev`       | starts api and web in watch mode                           |
+| `pnpm test`      | unit and integration tests of api and web                  |
+| `pnpm e2e`       | builds everything and runs Playwright against the real API |
+| `pnpm lint`      | ESLint on every package                                    |
+| `pnpm typecheck` | `tsc --noEmit` on every package                            |
+| `pnpm build`     | production builds                                          |
 
 ## Project structure
 
@@ -55,10 +55,10 @@ Each web feature follows the same shape: `index.tsx` is the smart component (an 
 
 Base path: `/api/v1`
 
-| Route | Response | Notes |
-| --- | --- | --- |
+| Route                            | Response             | Notes                                                                                                                                                                                                     |
+| -------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /episodes?page=1&name=rick` | `Paginated<Episode>` | `name` (up to 100 chars) filters by episode name and answers an empty page when nothing matches; 400 when `page` is not a positive integer or a param is repeated; 404 when the page is past the last one |
-| `GET /episodes/:id` | `EpisodeDetail` | characters sorted by name, 404 when the episode does not exist |
+| `GET /episodes/:id`              | `EpisodeDetail`      | characters sorted by name, 404 when the episode does not exist                                                                                                                                            |
 
 Successful responses carry `Cache-Control: public, max-age=<CACHE_TTL_SECONDS>`; errors are never marked cacheable.
 
