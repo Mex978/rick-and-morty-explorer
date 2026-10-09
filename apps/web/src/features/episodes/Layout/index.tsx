@@ -45,7 +45,9 @@ export function EpisodesLayout({ query, seasons, page, pages }: EpisodesProps) {
             <Grid>
               {episodes.map((episode) => (
                 <Card key={episode.id}>
-                  <Link href={`/episodes/${episode.id}`}>
+                  {/* A viewport prefetch of an episode runs its generateMetadata, which needs the episode
+                      itself, so twenty visible cards would be twenty upstream calls at once. */}
+                  <Link href={`/episodes/${episode.id}`} prefetch={false}>
                     <Code>{episode.code}</Code>
                     <Name>{episode.name}</Name>
                     <Meta>{formatAirDate(episode.airDate, format)}</Meta>
