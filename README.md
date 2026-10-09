@@ -78,12 +78,12 @@ The API needs `packages/types` built once (`pnpm dev` and `pnpm build` do it thr
 
 ### 3. Open
 
-| What    | URL                                                                                                      |
-| ------- | -------------------------------------------------------------------------------------------------------- |
-| Web app | http://localhost:3000 (redirects to `/pt-BR`; `/en` for English)                                         |
-| API     | http://localhost:3001/api/v1/episodes                                                                    |
-| Health  | http://localhost:3001/health (liveness) and http://localhost:3001/health/ready (checks the upstream too) |
-| Metrics | http://localhost:3001/metrics                                                                            |
+| What    | URL                                                                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web app | http://localhost:3000 (redirects to `/pt-BR`; `/en` for English)                                                                                       |
+| API     | http://localhost:3001/api/v1/episodes                                                                                                                  |
+| Health  | http://localhost:3001/health (liveness), http://localhost:3001/health/ready (readiness) and http://localhost:3001/health/upstream (pings the upstream) |
+| Metrics | http://localhost:3001/metrics                                                                                                                          |
 
 ### Environment variables
 
@@ -99,6 +99,7 @@ cp apps/web/.env.example apps/web/.env
 | `PORT`                   | api | `3001`                            | HTTP port                                |
 | `RICK_AND_MORTY_API_URL` | api | `https://rickandmortyapi.com/api` | upstream base URL                        |
 | `CACHE_TTL_SECONDS`      | api | `3600`                            | in-memory cache and `Cache-Control`      |
+| `SHUTDOWN_DRAIN_MS`      | api | `0`                               | readiness is down this long before close |
 | `NODE_ENV`               | api | unset                             | `production` switches logs to JSON lines |
 | `API_URL`                | web | `http://localhost:3001`           | where the Next.js server finds the BFF   |
 | `SITE_URL`               | web | `http://localhost:3000`           | base for canonical and hreflang links    |
@@ -115,12 +116,12 @@ docker compose up --build
 
 The first build takes a few minutes; later runs reuse the layers. When the logs settle, four services are up:
 
-| Service      | URL                   | What it is                                                                                       |
-| ------------ | --------------------- | ------------------------------------------------------------------------------------------------ |
-| `web`        | http://localhost:3000 | the Next.js app, production build, talking to `api` over the compose network                     |
-| `api`        | http://localhost:3001 | the NestJS BFF, production build, JSON logs, with a container health check on `/health`          |
-| `prometheus` | http://localhost:9090 | scrapes `api:3001/metrics` every 5 seconds; under Status → Targets the `api` job should be `UP`  |
-| `grafana`    | http://localhost:3002 | opens without login; the dashboard "Rick and Morty Explorer API" is provisioned under Dashboards |
+| Service      | URL                   | What it is                                                                                                           |
+| ------------ | --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `web`        | http://localhost:3000 | the Next.js app, production build, talking to `api` over the compose network                                         |
+| `api`        | http://localhost:3001 | the NestJS BFF, production build, JSON logs, a five second drain on stop, with a container health check on `/health` |
+| `prometheus` | http://localhost:9090 | scrapes `api:3001/metrics` every 5 seconds; under Status → Targets the `api` job should be `UP`                      |
+| `grafana`    | http://localhost:3002 | opens without login; the dashboard "Rick and Morty Explorer API" is provisioned under Dashboards                     |
 
 To see the dashboard move, browse the app on port 3000 for a minute and come back to Grafana. Useful commands:
 
@@ -171,11 +172,11 @@ pnpm --filter @rma/api test
 pnpm --filter @rma/web exec vitest
 ```
 
-| Layer | Tool                    | What it covers                                                                                                                                                                                                                   |
-| ----- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
-| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                              |
-| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404                                                                                                                         |
+| Layer | Tool                    | What it covers                                                                                                                                                                                                                                       |
+| ----- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, the shutdown drain, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
+| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                                                  |
+| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404                                                                                                                                             |
 
 `pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
 
@@ -206,7 +207,7 @@ apps/
     src/episodes/        controller, service, pure mapper
     src/rick-and-morty/  the only code that knows the upstream exists
     src/observability/   metrics registry, request logging, /metrics
-    src/health/          /health with Terminus
+    src/health/          /health, /health/ready and /health/upstream with Terminus
     test/                Jest suites mirroring src, fixtures and the integration test
     Dockerfile
   web/
@@ -259,7 +260,7 @@ Everything runs locally; no external service is involved.
 
 | Endpoint   | What it gives                                                                                                                                                                                               |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/health`  | Liveness: heap usage of this process only, so an upstream outage never gets a healthy container restarted. `/health/ready` adds a ping to the upstream and is the one to gate traffic on                    |
+| `/health`  | Liveness: heap usage of this process. `/health/ready` adds whether a shutdown has started, and is the one to gate traffic on. `/health/upstream` pings the public API, for dashboards and alerts only       |
 | `/metrics` | Prometheus text format: `http_request_duration_seconds` by method, route pattern and status; `cache_events_total` by hit or miss; `upstream_request_duration_seconds` by operation; Node.js default metrics |
 
 Every response carries an `x-request-id` (reused when the caller sends one), and each request is logged with method, url, status, duration and cache result. With `NODE_ENV=production` the Nest logger writes JSON lines, ready for any log collector. Routes are logged by pattern (`/api/v1/episodes/:id`) so metric cardinality stays bounded whatever the ids or search terms.
@@ -274,6 +275,7 @@ The Grafana dashboard provisioned by Docker Compose shows requests per second an
 - **Smart/dumb maps onto server/client components.** The smart one fetches on the server, the dumb one only renders and translates. No data fetching library on the client: server components call the BFF with `fetch` and Next's data cache. The BFF's `Cache-Control` header is for anything that talks to it directly, such as a CDN or another consumer.
 - **Search lives in the URL.** Typing is debounced and navigates inside a React transition, so the server renders the result, the input keeps focus, every result page is cacheable and a search is a shareable link. Characters are filtered on the client because the whole episode is already on the page.
 - **Themes are CSS variables.** A `data-theme` attribute toggles them, following the system preference by default. The choice is a cookie the layout reads on the server, so the page never flashes the other theme and switching re-renders nothing. Browsers with the View Transitions API reveal the new theme in a circle from the click. Reading the cookie makes every page dynamic, which is fine: caching happens at the data layer, not at the HTML.
+- **Health looks at this process, never at the upstream.** An outage of the public API must neither restart a healthy container nor pull every instance out of rotation while the cache can still answer, so neither liveness nor readiness pings it; `/health/upstream` exists for alerting. Readiness does turn down when a shutdown starts: with `SHUTDOWN_DRAIN_MS` set, the process keeps serving for that long so the balancer notices before the server closes.
 - **The public API is treated as a shared, rate-limited resource.** The BFF retries transient 5xx twice with a short backoff and answers 503 on a 429 instead of waiting out the upstream's ten-second retry window. Each route has its own `loading.tsx` skeleton, which also bounds what a link prefetch fetches: the skeleton, never the data, so twenty visible cards do not turn into twenty upstream calls.
 - **Avatars load straight from the upstream CDN.** `next/image` still handles sizing, lazy loading and the `priority` preload of the first row, but with `unoptimized` set: optimizing a 300px JPEG saves nothing, and routing every user's image traffic through one server IP is exactly what the upstream rate-limits, which showed up as broken images on refresh. A page with 60 avatars is still a burst for the CDN, so an avatar that fails is retried after a few seconds and then replaced by a placeholder with the character's initial.
 - **Visited pages stay in the client router cache for a minute** (`staleTimes.dynamic`), so going back to an episode is instant instead of showing its skeleton again. The flag is still marked experimental by Next.js; the content never changes, so a minute of staleness is free.
@@ -285,6 +287,6 @@ The two apps deploy differently, and that is deliberate.
 
 **Web on Vercel.** Import the repository, set the root directory to `apps/web` and the build command to `pnpm turbo build --filter=@rma/web` (Turborepo builds `packages/types` first; pnpm and the workspace are detected automatically). Set `API_URL` to the public URL of the API and `SITE_URL` to the Vercel domain. The `standalone` output used by the Dockerfile is harmless there.
 
-**API in a container.** The BFF keeps an in-memory cache and keep-alive connections, which only pay off in a long-running process, so it is not a fit for serverless functions. The Dockerfile at `apps/api/Dockerfile` runs on any container host (Render, Fly.io, Railway, Cloud Run); expose `PORT`, set `CACHE_TTL_SECONDS` if the default hour is not what you want, and point the platform health check at `/health`.
+**API in a container.** The BFF keeps an in-memory cache and keep-alive connections, which only pay off in a long-running process, so it is not a fit for serverless functions. The Dockerfile at `apps/api/Dockerfile` runs on any container host (Render, Fly.io, Railway, Cloud Run); expose `PORT`, set `CACHE_TTL_SECONDS` if the default hour is not what you want, and `SHUTDOWN_DRAIN_MS` below the platform's stop grace period. Point the liveness probe at `/health` and the readiness probe at `/health/ready`.
 
 MIT
