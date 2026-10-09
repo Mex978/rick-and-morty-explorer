@@ -9,7 +9,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['test/**/*.test.{ts,tsx}'],
     server: {
       deps: { inline: ['next-intl'] },
     },
@@ -17,7 +17,6 @@ export default defineConfig({
       include: ['src/**/*.{ts,tsx}'],
       // Next runtime glue with no logic of its own: wired by the framework and exercised end to end by Playwright.
       exclude: [
-        'src/**/*.test.{ts,tsx}',
         'src/**/*.d.ts',
         'src/proxy.ts',
         'src/i18n/request.ts',
