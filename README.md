@@ -146,7 +146,7 @@ What is where:
 - `apps/api/Dockerfile` and `apps/web/Dockerfile`: multi-stage builds. `turbo prune` keeps only the workspace packages each app needs, dependencies install in their own layer, the runtime image runs as a non-root user and contains only the build output and production dependencies (Next uses its `standalone` output). Turborepo is pinned in the base layer rather than downloaded on every build, so a source change rebuilds in seconds; a dependency change still reinstalls, which costs about as much as the download it replaces.
 - `docker-compose.yml`: the four services above, with `web` waiting for `api` to be healthy, and the app images rebuilt on every `up`.
 - `docker/prometheus/prometheus.yml`: the scrape config, carrying the same `METRICS_TOKEN` the compose file gives the api. It is mounted as a compose config, so an edit is applied by the next `docker compose up`, which recreates the container.
-- `docker/grafana/`: datasource and dashboard provisioning, so Grafana comes up configured.
+- `docker/grafana/`: datasource and dashboard provisioning, so Grafana comes up configured. Mounted as compose configs, like the Prometheus one, so edits are applied by the next `up`.
 
 ## Running the tests
 
