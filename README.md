@@ -155,7 +155,7 @@ Unit and integration tests for both apps, with coverage:
 pnpm test
 ```
 
-End to end with Playwright, against the real public API. It builds both apps, starts them on ports 3100 and 3101 (so it can run next to `pnpm dev`) and tears them down at the end. The first run needs the browser:
+End to end with Playwright. It builds both apps and starts three servers on their own ports, so it can run next to `pnpm dev`: a stand-in for the public API on 3102 (`e2e/upstream.mjs`, same shapes and status codes, served from fixtures), the BFF on 3101 pointed at it, and the web app on 3100. Everything is torn down at the end. The first run needs the browser:
 
 ```bash
 pnpm --filter @rma/e2e exec playwright install chromium
@@ -179,26 +179,26 @@ pnpm --filter @rma/web exec vitest
 | ----- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, the shutdown drain, and an integration test booting the app through the same setup as `main.ts` for the routes, validation, health, metrics token, rate limit and request ids |
 | web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                                                                                |
-| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404                                                                                                                                                                           |
+| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404, health and metrics endpoints, cache hit                                                                                                                                  |
 
 `pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
 
-The e2e job in CI is blocking, with two retries to absorb public API hiccups, and runs serially because the upstream rate-limits bursts. Avatar images are answered with a one-pixel stub during the suite: the browser and the API leave from the same IP there, and real downloads would spend the CDN's per-IP quota the API calls need. The Playwright report is uploaded on failure.
+The e2e job in CI is blocking. Because the upstream is a stub, the suite is deterministic, runs in parallel and never spends the public API's quota; the single retry covers browser flakiness only. The stub also serves the avatars, as a one-pixel image. The Playwright report is uploaded on failure.
 
 ## Scripts
 
 All from the repository root.
 
-| Script              | What it does                                              |
-| ------------------- | --------------------------------------------------------- |
-| `pnpm dev`          | api and web in watch mode                                 |
-| `pnpm build`        | production builds of every package                        |
-| `pnpm test`         | unit and integration tests with coverage thresholds       |
-| `pnpm e2e`          | production builds, then Playwright on ports 3100 and 3101 |
-| `pnpm lint`         | ESLint on every package                                   |
-| `pnpm typecheck`    | `tsc --noEmit` on every package                           |
-| `pnpm format`       | Prettier on the whole repo                                |
-| `pnpm format:check` | verifies formatting; runs in CI                           |
+| Script              | What it does                                             |
+| ------------------- | -------------------------------------------------------- |
+| `pnpm dev`          | api and web in watch mode                                |
+| `pnpm build`        | production builds of every package                       |
+| `pnpm test`         | unit and integration tests with coverage thresholds      |
+| `pnpm e2e`          | production builds, then Playwright on ports 3100 to 3102 |
+| `pnpm lint`         | ESLint on every package                                  |
+| `pnpm typecheck`    | `tsc --noEmit` on every package                          |
+| `pnpm format`       | Prettier on the whole repo                               |
+| `pnpm format:check` | verifies formatting; runs in CI                          |
 
 Commits follow Conventional Commits, checked by commitlint; staged files are formatted on commit. CI runs format check, lint, typecheck, tests, builds, the Docker images and the e2e suite on every push to `main` and `develop` and on pull requests.
 
@@ -224,7 +224,7 @@ apps/
 packages/
   types/                 Episode, EpisodeDetail, Character, Paginated
   tsconfig/, eslint-config/
-e2e/                     Playwright specs
+e2e/                     Playwright specs and the upstream stand-in
 docker/                  Prometheus config, Grafana datasource and dashboard
 docker-compose.yml
 .github/workflows/ci.yml
