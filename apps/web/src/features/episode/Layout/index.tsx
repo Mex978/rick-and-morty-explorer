@@ -3,8 +3,9 @@
 import type { Character } from '@rma/types';
 import Image from 'next/image';
 import { useFormatter, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
+import { Pagination } from '@/components/Pagination';
 import { SearchField } from '@/components/SearchField';
 import { Link } from '@/i18n/navigation';
 import { formatAirDate } from '@/lib/air-date';
@@ -29,12 +30,32 @@ import {
 } from './styles';
 
 const EAGER_AVATARS = 4;
+// Caps how many avatars a visit asks the upstream CDN for at once, whatever the screen size,
+// and fills the five columns of the desktop grid twice.
+const PAGE_SIZE = 10;
 
 export function EpisodeLayout({ episode }: EpisodeProps) {
   const t = useTranslations('episode');
   const format = useFormatter();
   const [query, setQuery] = useState('');
-  const characters = filterByName(episode.characters, query);
+  const [page, setPage] = useState(1);
+  const section = useRef<HTMLHeadingElement>(null);
+
+  // The filter always runs over every character; only the result is paged.
+  const matches = filterByName(episode.characters, query);
+  const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+  const current = Math.min(page, pages);
+  const characters = matches.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+
+  const search = (value: string) => {
+    setQuery(value);
+    setPage(1);
+  };
+
+  const goTo = (target: number) => {
+    setPage(target);
+    section.current?.scrollIntoView?.({ block: 'start' });
+  };
 
   return (
     <>
@@ -48,19 +69,20 @@ export function EpisodeLayout({ episode }: EpisodeProps) {
         {' · '}
         {t('characterCount', { count: episode.characterCount })}
       </Meta>
-      <SectionTitle>{t('characters')}</SectionTitle>
+      <SectionTitle ref={section}>{t('characters')}</SectionTitle>
       <SearchField
         label={t('search.label')}
         placeholder={t('search.placeholder')}
         value={query}
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) => search(event.target.value)}
       />
-      {characters.length === 0 && <Empty>{t('empty', { query })}</Empty>}
+      {matches.length === 0 && <Empty>{t('empty', { query })}</Empty>}
       <Grid>
         {characters.map((character, index) => (
           <CharacterCard key={character.id} character={character} eager={index < EAGER_AVATARS} />
         ))}
       </Grid>
+      {pages > 1 && <Pagination page={current} pages={pages} onChange={goTo} />}
     </>
   );
 }

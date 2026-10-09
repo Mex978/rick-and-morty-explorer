@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { EpisodeLayout } from '@/features/episode/Layout';
-import { episodeDetail } from '../../fixtures';
-import { act, fireEvent, render, screen, within } from '../../render';
+import { episodeDetail, manyCharacters } from '../../fixtures';
+import { act, cleanup, fireEvent, render, screen, within } from '../../render';
 
 const filter = () => screen.getByRole('searchbox', { name: 'Filtrar personagens' });
 const names = () =>
@@ -72,5 +72,100 @@ describe('EpisodeLayout avatars', () => {
     fireEvent.error(avatar());
     expect(avatar()).toHaveTextContent('B');
     expect(avatar().tagName).toBe('DIV');
+  });
+});
+
+describe('EpisodeLayout pagination', () => {
+  const thirty = { ...episodeDetail, characterCount: 30, characters: manyCharacters(30) };
+  const status = () => screen.getByRole('navigation', { name: 'Paginação' });
+  const next = () => fireEvent.click(screen.getByRole('button', { name: 'Próxima' }));
+
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it('shows ten characters per page and no controls when they all fit', () => {
+    render(<EpisodeLayout episode={thirty} />);
+
+    expect(names()).toHaveLength(10);
+    expect(names()[0]).toBe('Clone 01');
+    expect(status()).toHaveTextContent('Página 1 de 3');
+
+    cleanup();
+    render(<EpisodeLayout episode={episodeDetail} />);
+
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('moves between pages and scrolls back to the section', () => {
+    render(<EpisodeLayout episode={thirty} />);
+
+    next();
+
+    expect(names()[0]).toBe('Clone 11');
+    expect(names()).toHaveLength(10);
+    expect(status()).toHaveTextContent('Página 2 de 3');
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledOnce();
+
+    next();
+
+    expect(names()[0]).toBe('Clone 21');
+    expect(names()).toHaveLength(10);
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
+
+    expect(names()[0]).toBe('Clone 11');
+  });
+
+  it('filters across every page and goes back to the first one', () => {
+    render(<EpisodeLayout episode={thirty} />);
+    next();
+    next();
+
+    fireEvent.change(filter(), { target: { value: 'clone 2' } });
+
+    expect(names()).toEqual([
+      'Clone 20',
+      'Clone 21',
+      'Clone 22',
+      'Clone 23',
+      'Clone 24',
+      'Clone 25',
+      'Clone 26',
+      'Clone 27',
+      'Clone 28',
+      'Clone 29',
+    ]);
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('keeps the filter when changing page and restores everything when it is cleared', () => {
+    render(<EpisodeLayout episode={thirty} />);
+    next();
+
+    fireEvent.change(filter(), { target: { value: 'clone' } });
+
+    expect(status()).toHaveTextContent('Página 1 de 3');
+    expect(names()[0]).toBe('Clone 01');
+
+    next();
+
+    expect(filter()).toHaveValue('clone');
+    expect(names()[0]).toBe('Clone 11');
+
+    fireEvent.change(filter(), { target: { value: '' } });
+
+    expect(status()).toHaveTextContent('Página 1 de 3');
+    expect(names()).toHaveLength(10);
+  });
+
+  it('hides the controls with the empty state', () => {
+    render(<EpisodeLayout episode={thirty} />);
+
+    fireEvent.change(filter(), { target: { value: 'jerry' } });
+
+    expect(screen.getByText('Nenhum personagem encontrado para “jerry”.')).toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 });

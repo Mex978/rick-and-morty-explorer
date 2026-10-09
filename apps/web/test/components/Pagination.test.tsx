@@ -2,7 +2,7 @@ import { useSearchParams } from 'next/navigation';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Pagination } from '@/components/Pagination';
-import { render, screen } from '../render';
+import { fireEvent, render, screen } from '../render';
 
 describe('Pagination', () => {
   it('disables both controls when there is a single page', () => {
@@ -35,6 +35,26 @@ describe('Pagination', () => {
     render(<Pagination page={3} pages={3} />);
 
     expect(screen.getByRole('link', { name: 'Anterior' })).toHaveAttribute('href', '/pt-BR?page=2');
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled();
+  });
+
+  it('turns into buttons that report the target page when the caller owns the page', () => {
+    const onChange = vi.fn();
+
+    render(<Pagination page={2} pages={3} onChange={onChange} />);
+
+    expect(screen.queryAllByRole('link')).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Próxima' }));
+
+    expect(onChange).toHaveBeenNthCalledWith(1, 1);
+    expect(onChange).toHaveBeenNthCalledWith(2, 3);
+  });
+
+  it('still disables the edges when the caller owns the page', () => {
+    render(<Pagination page={1} pages={1} onChange={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled();
   });
 });

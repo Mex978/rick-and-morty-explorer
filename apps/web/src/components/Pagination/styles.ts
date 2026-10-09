@@ -30,8 +30,16 @@ export const PageLink = styled(Link)`
 
 export const PageButton = styled.button`
   ${pageControl}
-  opacity: 0.4;
-  cursor: not-allowed;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 `;
 
 export const Status = styled.span`
