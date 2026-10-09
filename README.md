@@ -114,10 +114,10 @@ Docker is optional. The application runs on its own with `pnpm dev`, and `/healt
 Stop `pnpm dev` first, since both use ports 3000 and 3001. Then, from the repository root:
 
 ```bash
-docker compose up --build
+docker compose up
 ```
 
-The first build takes a few minutes; later runs reuse the layers. When the logs settle, four services are up:
+Every `up` rebuilds the two app images from the code on disk (`pull_policy: build` in the compose file), so there is no `--build` flag to remember after a change. The first build takes a few minutes; later ones reuse the cached layers and take seconds. When the logs settle, four services are up:
 
 | Service      | URL                   | What it is                                                                                          |
 | ------------ | --------------------- | --------------------------------------------------------------------------------------------------- |
@@ -143,7 +143,7 @@ docker compose build --no-cache
 What is where:
 
 - `apps/api/Dockerfile` and `apps/web/Dockerfile`: multi-stage builds. `turbo prune` keeps only the workspace packages each app needs, dependencies install in their own layer, the runtime image runs as a non-root user and contains only the build output and production dependencies (Next uses its `standalone` output).
-- `docker-compose.yml`: the four services above, with `web` waiting for `api` to be healthy.
+- `docker-compose.yml`: the four services above, with `web` waiting for `api` to be healthy, and the app images rebuilt on every `up`.
 - `docker/prometheus/prometheus.yml`: the scrape config, carrying the same `METRICS_TOKEN` the compose file gives the api.
 - `docker/grafana/`: datasource and dashboard provisioning, so Grafana comes up configured.
 
