@@ -26,14 +26,15 @@ The `.env` files are optional: every variable has a working default. The web app
 
 ## Scripts
 
-| Script           | What it does                                               |
-| ---------------- | ---------------------------------------------------------- |
-| `pnpm dev`       | starts api and web in watch mode                           |
-| `pnpm test`      | unit and integration tests of api and web                  |
-| `pnpm e2e`       | builds everything and runs Playwright against the real API |
-| `pnpm lint`      | ESLint on every package                                    |
-| `pnpm typecheck` | `tsc --noEmit` on every package                            |
-| `pnpm build`     | production builds                                          |
+| Script           | What it does                                                            |
+| ---------------- | ----------------------------------------------------------------------- |
+| `pnpm dev`       | starts api and web in watch mode                                        |
+| `pnpm test`      | unit and integration tests of api and web                               |
+| `pnpm e2e`       | builds everything and runs Playwright against the real API              |
+| `pnpm lint`      | ESLint on every package                                                 |
+| `pnpm format`    | Prettier on the whole repo; `format:check` only verifies and runs in CI |
+| `pnpm typecheck` | `tsc --noEmit` on every package                                         |
+| `pnpm build`     | production builds                                                       |
 
 ## Project structure
 
