@@ -1,13 +1,14 @@
 # syntax=docker/dockerfile:1
 FROM node:24-alpine AS base
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-RUN corepack enable
+# Turborepo lives in this cached layer instead of being downloaded by `pnpm dlx` on every build.
+RUN corepack enable && npm install -g turbo@2.11.7
 WORKDIR /app
 
 # Keep only the workspace packages the api needs, so dependency layers are not invalidated by web changes.
 FROM base AS pruner
 COPY . .
-RUN pnpm dlx turbo@2 prune @rma/api --docker
+RUN turbo prune @rma/api --docker
 
 FROM base AS builder
 COPY --from=pruner /app/out/json/ .
