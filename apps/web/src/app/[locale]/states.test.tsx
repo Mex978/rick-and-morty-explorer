@@ -2,13 +2,22 @@ import { fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { render, screen } from '../../../test/render';
+import EpisodeLoading from './episodes/[id]/loading';
 import Error from './error';
 import Loading from './loading';
 import NotFound from './not-found';
 
 describe('route states', () => {
-  it('shows a loading status', () => {
+  it('announces the list skeleton as a loading status', () => {
     render(<Loading />);
+
+    const status = screen.getByRole('status');
+    expect(status).toHaveAttribute('aria-busy', 'true');
+    expect(status).toHaveTextContent('Carregando...');
+  });
+
+  it('announces the episode skeleton as a loading status', () => {
+    render(<EpisodeLoading />);
 
     expect(screen.getByRole('status')).toHaveTextContent('Carregando...');
   });
