@@ -172,11 +172,11 @@ pnpm --filter @rma/api test
 pnpm --filter @rma/web exec vitest
 ```
 
-| Layer | Tool                    | What it covers                                                                                                                                                                                                                                       |
-| ----- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, the shutdown drain, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
-| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                                                  |
-| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404                                                                                                                                             |
+| Layer | Tool                    | What it covers                                                                                                                                                                                                                                                   |
+| ----- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping and retries, env validation, the shutdown drain, and an integration test booting the app through the same setup as `main.ts` for the routes, validation, health, metrics and request ids |
+| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                                                              |
+| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, translated 404                                                                                                                                                         |
 
 `pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
 
@@ -238,7 +238,7 @@ Base path: `/api/v1`. Successful responses carry `Cache-Control: public, max-age
 | `GET /episodes?page=1&name=rick` | `Paginated<Episode>` |
 | `GET /episodes/:id`              | `EpisodeDetail`      |
 
-- `page` must be a positive integer and `name` at most 100 characters; anything else, including a repeated parameter, is a 400.
+- `page` and `:id` must be positive integers and `name` at most 100 characters; anything else, including a repeated parameter, is a 400.
 - A `name` with no matches returns an empty first page; any `page` past the last one, with or without `name`, is a 404.
 - `EpisodeDetail` carries the characters already sorted by name; the frontend never sorts.
 
