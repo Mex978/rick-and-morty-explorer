@@ -4,6 +4,9 @@ on:
   push:
     branches: [main, develop]
   pull_request:
+  # Run on demand from the Actions tab: after a runner or public API hiccup, or on a branch that
+  # had no push since the workflow was enabled.
+  workflow_dispatch:
 
 jobs:
   check:
