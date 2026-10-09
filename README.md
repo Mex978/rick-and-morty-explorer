@@ -179,7 +179,7 @@ pnpm --filter @rma/web exec vitest
 
 `pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
 
-The e2e job in CI is blocking, with two retries to absorb public API hiccups, and runs serially because the upstream rate-limits bursts. The Playwright report is uploaded on failure.
+The e2e job in CI is blocking, with two retries to absorb public API hiccups, and runs serially because the upstream rate-limits bursts. Avatar images are answered with a one-pixel stub during the suite: the browser and the API leave from the same IP there, and real downloads would spend the CDN's per-IP quota the API calls need. The Playwright report is uploaded on failure.
 
 ## Scripts
 
