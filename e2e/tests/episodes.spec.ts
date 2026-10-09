@@ -35,3 +35,12 @@ test('searches while typing and restores the list when cleared', async ({ page }
   await expect(page).toHaveURL(/\/pt-BR$/);
   await expect(page.getByRole('link', { name: /Lawnmower Dog/ })).toBeVisible();
 });
+
+test('shows the translated not found page for an unknown episode', async ({ page }) => {
+  await page.goto('/pt-BR/episodes/99999');
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Página não encontrada' }),
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Ir para os episódios' })).toBeVisible();
+});
