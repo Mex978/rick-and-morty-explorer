@@ -1,0 +1,62 @@
+{
+  "app": {
+    "title": "Rick and Morty Explorer",
+    "language": "Idioma",
+    "theme": "Alternar tema",
+    "description": "Explore os episódios de Rick and Morty e os personagens de cada um.",
+    "locales": {
+      "pt-BR": "Português (Brasil)",
+      "en": "English"
+    }
+  },
+  "episodes": {
+    "title": "Episódios",
+    "season": "Temporada {number}",
+    "characterCount": "{count, plural, one {# personagem} other {# personagens}}",
+    "search": {
+      "label": "Buscar episódio",
+      "placeholder": "Buscar pelo nome do episódio",
+      "clear": "Limpar busca"
+    },
+    "empty": "Nenhum episódio encontrado para “{query}”."
+  },
+  "episode": {
+    "back": "Voltar para os episódios",
+    "airDate": "Exibido em {date}",
+    "characters": "Personagens",
+    "characterCount": "{count, plural, one {# personagem} other {# personagens}}",
+    "search": {
+      "label": "Filtrar personagens",
+      "placeholder": "Buscar pelo nome do personagem"
+    },
+    "empty": "Nenhum personagem encontrado para “{query}”."
+  },
+  "character": {
+    "status": {
+      "alive": "Vivo",
+      "dead": "Morto",
+      "unknown": "Desconhecido"
+    },
+    "species": "Espécie",
+    "origin": "Origem",
+    "location": "Última localização"
+  },
+  "pagination": {
+    "label": "Paginação",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "page": "Página {current} de {total}",
+    "goTo": "Ir para a página {page}"
+  },
+  "loading": "Carregando...",
+  "error": {
+    "title": "Algo deu errado",
+    "description": "Não foi possível carregar os dados agora.",
+    "retry": "Tentar novamente"
+  },
+  "notFound": {
+    "title": "Página não encontrada",
+    "description": "O que você procura não existe nesta dimensão.",
+    "home": "Ir para os episódios"
+  }
+}

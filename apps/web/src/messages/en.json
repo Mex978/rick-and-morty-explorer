@@ -1,0 +1,62 @@
+{
+  "app": {
+    "title": "Rick and Morty Explorer",
+    "language": "Language",
+    "theme": "Toggle theme",
+    "description": "Browse the episodes of Rick and Morty and the characters in each one.",
+    "locales": {
+      "pt-BR": "Português (Brasil)",
+      "en": "English"
+    }
+  },
+  "episodes": {
+    "title": "Episodes",
+    "season": "Season {number}",
+    "characterCount": "{count, plural, one {# character} other {# characters}}",
+    "search": {
+      "label": "Search episodes",
+      "placeholder": "Search by episode name",
+      "clear": "Clear search"
+    },
+    "empty": "No episode found for “{query}”."
+  },
+  "episode": {
+    "back": "Back to episodes",
+    "airDate": "Aired on {date}",
+    "characters": "Characters",
+    "characterCount": "{count, plural, one {# character} other {# characters}}",
+    "search": {
+      "label": "Filter characters",
+      "placeholder": "Search by character name"
+    },
+    "empty": "No character found for “{query}”."
+  },
+  "character": {
+    "status": {
+      "alive": "Alive",
+      "dead": "Dead",
+      "unknown": "Unknown"
+    },
+    "species": "Species",
+    "origin": "Origin",
+    "location": "Last known location"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {current} of {total}",
+    "goTo": "Go to page {page}"
+  },
+  "loading": "Loading...",
+  "error": {
+    "title": "Something went wrong",
+    "description": "We could not load the data right now.",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "What you are looking for does not exist in this dimension.",
+    "home": "Go to episodes"
+  }
+}

@@ -1,0 +1,18 @@
+import { Controller, Get, Header, UseGuards, VERSION_NEUTRAL } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
+
+import { MetricsTokenGuard } from './metrics-token.guard';
+import { MetricsService } from './metrics.service';
+
+@SkipThrottle()
+@Controller({ path: 'metrics', version: VERSION_NEUTRAL })
+@UseGuards(MetricsTokenGuard)
+export class MetricsController {
+  constructor(private readonly metrics: MetricsService) {}
+
+  @Get()
+  @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
+  render(): Promise<string> {
+    return this.metrics.render();
+  }
+}

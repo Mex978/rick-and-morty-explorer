@@ -1,0 +1,49 @@
+import { expect, test } from '@playwright/test';
+
+test('opens an episode and lists its characters in alphabetical order', async ({ page }) => {
+  await page.goto('/pt-BR');
+
+  await page.getByRole('link', { name: /Pilot/ }).click();
+
+  await expect(page).toHaveURL(/\/pt-BR\/episodes\/1$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Pilot' })).toBeVisible();
+
+  const names = await page
+    .getByRole('list', { name: 'Personagens' })
+    .getByRole('listitem')
+    .getByRole('img')
+    .evaluateAll((images) => images.map((img) => img.getAttribute('alt')));
+
+  expect(names.length).toBeGreaterThan(1);
+  expect(names).toEqual([...names].sort((a, b) => a!.localeCompare(b!, 'en')));
+});
+
+test('filters the characters by name without leaving the page', async ({ page }) => {
+  await page.goto('/pt-BR/episodes/1');
+
+  await page.getByRole('searchbox').fill('smith');
+
+  await expect(page).toHaveURL(/\/pt-BR\/episodes\/1$/);
+  const characters = page.getByRole('list', { name: 'Personagens' }).getByRole('listitem');
+  await expect(characters.filter({ hasNotText: 'Smith' })).toHaveCount(0);
+  await expect(characters.first()).toBeVisible();
+});
+
+test('pages through the characters and finds one from a later page', async ({ page }) => {
+  await page.goto('/pt-BR/episodes/1');
+  const items = page.getByRole('list', { name: 'Personagens' }).getByRole('listitem');
+
+  await expect(items).toHaveCount(10);
+  await expect(page.getByRole('navigation', { name: 'Paginação' })).toContainText('Página 1 de 2');
+
+  await page.getByRole('button', { name: 'Próxima' }).click();
+
+  await expect(items).toHaveCount(9);
+  await expect(page.getByRole('navigation', { name: 'Paginação' })).toContainText('Página 2 de 2');
+
+  await page.getByRole('searchbox').fill('summer');
+
+  await expect(items).toHaveCount(1);
+  await expect(items.first()).toContainText('Summer Smith');
+  await expect(page.getByRole('navigation', { name: 'Paginação' })).toHaveCount(0);
+});

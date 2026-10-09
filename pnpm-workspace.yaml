@@ -2,3 +2,10 @@ packages:
   - apps/*
   - packages/*
   - e2e
+
+# These ship prebuilt binaries; their install scripts only build a fallback that is never needed.
+# Listing them records the decision pnpm asks about, so a fresh install prints no warning.
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@swc/core'
+  - unrs-resolver

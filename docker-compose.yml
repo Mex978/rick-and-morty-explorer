@@ -1,0 +1,65 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    # Rebuild on every `up`, so the containers always run the code on disk.
+    pull_policy: build
+    ports:
+      - '3001:3001'
+    environment:
+      CACHE_TTL_SECONDS: 86400
+      SHUTDOWN_DRAIN_MS: 5000
+      METRICS_TOKEN: local-metrics-token
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    pull_policy: build
+    ports:
+      - '3000:3000'
+    environment:
+      API_URL: http://api:3001
+      SITE_URL: http://localhost:3000
+    depends_on:
+      api:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    ports:
+      - '9090:9090'
+    # Directory mounts survive files being rewritten; Prometheus rereads its config on its own.
+    command:
+      - --config.file=/etc/prometheus/config/prometheus.yml
+      - --config.auto-reload-interval=30s
+      - --storage.tsdb.path=/prometheus
+    volumes:
+      - ./docker/prometheus:/etc/prometheus/config:ro
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    ports:
+      - '3002:3000'
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
+      # Open straight on the dashboard and hide what this stack does not use.
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/api.json
+      GF_PLUGINS_PREINSTALL_DISABLED: 'true'
+      GF_UNIFIED_ALERTING_ENABLED: 'false'
+      GF_EXPLORE_ENABLED: 'false'
+      GF_NEWS_NEWS_FEED_ENABLED: 'false'
+      GF_HELP_ENABLED: 'false'
+      GF_PROFILE_ENABLED: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+    # Grafana rereads the dashboards folder every few seconds; the datasource only at start.
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
