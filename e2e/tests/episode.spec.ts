@@ -9,6 +9,7 @@ test('opens an episode and lists its characters in alphabetical order', async ({
   await expect(page.getByRole('heading', { level: 1, name: 'Pilot' })).toBeVisible();
 
   const names = await page
+    .getByRole('listitem')
     .getByRole('img')
     .evaluateAll((images) => images.map((img) => img.getAttribute('alt')));
 

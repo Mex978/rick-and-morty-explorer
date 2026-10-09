@@ -57,15 +57,15 @@ docker compose up --build
 
 ## Scripts
 
-| Script           | What it does                                            |
-| ---------------- | ------------------------------------------------------- |
-| `pnpm dev`       | api and web in watch mode                               |
-| `pnpm test`      | unit and integration tests with coverage thresholds     |
-| `pnpm e2e`       | production builds, then Playwright against the real API |
-| `pnpm lint`      | ESLint on every package                                 |
-| `pnpm format`    | Prettier on the whole repo (`format:check` runs in CI)  |
-| `pnpm typecheck` | `tsc --noEmit` on every package                         |
-| `pnpm build`     | production builds                                       |
+| Script           | What it does                                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`       | api and web in watch mode                                                                                        |
+| `pnpm test`      | unit and integration tests with coverage thresholds                                                              |
+| `pnpm e2e`       | production builds, then Playwright against the real API on ports 3100 and 3101, so it can run next to `pnpm dev` |
+| `pnpm lint`      | ESLint on every package                                                                                          |
+| `pnpm format`    | Prettier on the whole repo (`format:check` runs in CI)                                                           |
+| `pnpm typecheck` | `tsc --noEmit` on every package                                                                                  |
+| `pnpm build`     | production builds                                                                                                |
 
 Commits follow Conventional Commits, checked by commitlint; staged files are formatted on commit.
 
