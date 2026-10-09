@@ -43,7 +43,7 @@ docker compose up --build
 | Service    | URL                                                            |
 | ---------- | -------------------------------------------------------------- |
 | web        | http://localhost:3000                                          |
-| api        | Jest, nock, supertest                                          | mapper, service (sorting, single batch call), HTTP client error mapping, env validation, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
+| api        | http://localhost:3001                                          |
 | Prometheus | http://localhost:9090                                          |
 | Grafana    | http://localhost:3002 (anonymous admin, dashboard provisioned) |
 
@@ -137,11 +137,11 @@ The Grafana dashboard provisioned by Docker Compose shows requests per second an
 
 ## Testing
 
-| Layer | Tool                    | What it covers                                                                                                                                                                      |
-| ----- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping, env validation, and an integration test booting the app through the same setup as `main.ts`                |
-| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity |
-| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, against the real API                                                                      |
+| Layer | Tool                    | What it covers                                                                                                                                                                                                       |
+| ----- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| api   | Jest, nock, supertest   | mapper, service (sorting, single batch call), HTTP client error mapping, env validation, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
+| web   | Vitest, Testing Library | both layouts (search, character filter), header, pagination, theme toggle, smart components with the API client mocked, the client itself, route pages, metadata and message parity                                  |
+| e2e   | Playwright, Chromium    | list, pagination, search, sorted characters, character filter, language and theme switch, against the real API                                                                                                       |
 
 `pnpm test` fails under 95% of statements, functions and lines (80% of branches on the api, 85% on the web). On the web the thresholds exclude the Next.js runtime glue (`layout.tsx`, `proxy.ts`, the i18n request config, the styled-components registry and the `styles.ts` files), which has no logic of its own and is exercised by Playwright instead. One web test deliberately goes through the real API client with `fetch` stubbed, as an integration check.
 
