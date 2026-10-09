@@ -12,14 +12,16 @@ The browser only ever talks to Next.js. Next.js fetches from the BFF on the serv
 
 ## Stack
 
-| Layer    | Choice                                                       |
-| -------- | ------------------------------------------------------------ |
-| Web      | Next.js 16 (App Router), styled-components, next-intl        |
-| API      | NestJS 11 as a backend for frontend                          |
-| Language | TypeScript end to end, shared contracts in `packages/types`  |
-| Monorepo | pnpm workspaces, Turborepo                                   |
-| Tests    | Jest (api), Vitest + Testing Library (web), Playwright (e2e) |
-| CI       | GitHub Actions                                               |
+| Layer         | Choice                                                                        |
+| ------------- | ----------------------------------------------------------------------------- |
+| Web           | Next.js 16 (App Router), styled-components, next-intl                         |
+| API           | NestJS 11 as a backend for frontend                                           |
+| Language      | TypeScript end to end, shared contracts in `packages/types`                   |
+| Monorepo      | pnpm workspaces, Turborepo                                                    |
+| Tests         | Jest (api), Vitest + Testing Library (web), Playwright (e2e)                  |
+| CI            | GitHub Actions                                                                |
+| Observability | prom-client and Terminus in the api; Prometheus and Grafana in Docker Compose |
+| Containers    | Docker multi-stage builds pruned with Turborepo, Docker Compose               |
 
 ## Running locally
 
@@ -30,7 +32,20 @@ pnpm install
 pnpm dev
 ```
 
-The web app runs on http://localhost:3000 and the API on http://localhost:3001. Every variable has a working default, so `.env` files are optional; copy `apps/api/.env.example` or `apps/web/.env.example` to `.env` next to it when you need to change one.
+The web app runs on http://localhost:3000 and the API on http://localhost:3001.
+
+Or with Docker, which also brings up Prometheus and a Grafana dashboard:
+
+```bash
+docker compose up --build
+```
+
+| Service    | URL                                                            |
+| ---------- | -------------------------------------------------------------- |
+| web        | http://localhost:3000                                          |
+| api        | Jest, nock, supertest                                          | mapper, service (sorting, single batch call), HTTP client error mapping, env validation, and an integration test booting the app through the same setup as `main.ts` for the routes, health, metrics and request ids |
+| Prometheus | http://localhost:9090                                          |
+| Grafana    | http://localhost:3002 (anonymous admin, dashboard provisioned) | Every variable has a working default, so `.env` files are optional; copy `apps/api/.env.example` or `apps/web/.env.example` to `.env` next to it when you need to change one.                                        |
 
 | Variable                 | App | Default                           | Purpose                                |
 | ------------------------ | --- | --------------------------------- | -------------------------------------- |
@@ -72,6 +87,8 @@ packages/
   types/                 Episode, EpisodeDetail, Character, Paginated
   tsconfig/, eslint-config/
 e2e/                     Playwright specs
+docker/                  Prometheus config, Grafana datasource and dashboard
+apps/*/Dockerfile, docker-compose.yml
 .github/workflows/ci.yml
 ```
 
@@ -89,6 +106,19 @@ Base path: `/api/v1`. Successful responses carry `Cache-Control: public, max-age
 - `page` must be a positive integer and `name` at most 100 characters; anything else, including a repeated parameter, is a 400.
 - A `name` with no matches returns an empty page; a `page` past the last one is a 404.
 - `EpisodeDetail` carries the characters already sorted by name; the frontend never sorts.
+
+## Observability
+
+Everything runs locally; no external service is involved.
+
+| Endpoint   | What it gives                                                                                                                                                                                               |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/health`  | Terminus check: pings the upstream and watches heap usage; 503 when either is down, so a container orchestrator can act on it                                                                               |
+| `/metrics` | Prometheus text format: `http_request_duration_seconds` by method, route pattern and status; `cache_events_total` by hit or miss; `upstream_request_duration_seconds` by operation; Node.js default metrics |
+
+Every response carries an `x-request-id` (reused when the caller sends one), and each request is logged with method, url, status, duration and cache result. With `NODE_ENV=production` the Nest logger writes JSON lines, ready for any log collector. Routes are logged by pattern (`/api/v1/episodes/:id`) so metric cardinality stays bounded whatever the ids or search terms.
+
+The Grafana dashboard provisioned by Docker Compose shows requests per second and p95 latency by route, responses by status, cache hit ratio, upstream latency by operation and process memory. Traces were left out on purpose: they need a backend to be useful, and the request id already correlates a response with its log line.
 
 ## Decisions
 
@@ -116,5 +146,13 @@ The e2e job in CI is blocking, with two retries to absorb public API hiccups, an
 pnpm test
 pnpm e2e
 ```
+
+## Deployment
+
+The two apps deploy differently, and that is deliberate.
+
+**Web on Vercel.** Import the repository, set the root directory to `apps/web` and the build command to `pnpm turbo build --filter=@rma/web` (Turborepo builds `packages/types` first; pnpm and the workspace are detected automatically). Set `API_URL` to the public URL of the API and `SITE_URL` to the Vercel domain. The `standalone` output used by the Dockerfile is harmless there.
+
+**API in a container.** The BFF keeps an in-memory cache and keep-alive connections, which only pay off in a long-running process, so it is not a fit for serverless functions. The Dockerfile at `apps/api/Dockerfile` runs on any container host (Render, Fly.io, Railway, Cloud Run); expose `PORT`, set `CACHE_TTL_SECONDS` if the default hour is not what you want, and point the platform health check at `/health`.
 
 MIT
