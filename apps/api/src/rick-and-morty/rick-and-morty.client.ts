@@ -15,7 +15,7 @@ import type { MonoTypeOperatorFunction } from 'rxjs';
 import { MetricsService } from '../observability/metrics.service';
 import type { RawCharacter, RawEpisode, RawPaginated } from './rick-and-morty.types';
 
-// Transient 5xx are retried briefly. A 429 is not: the upstream asks for ~10s, longer than a page should wait.
+// 429 is left out: the upstream asks for ~10s, longer than a page should wait.
 const RETRYABLE_STATUSES = new Set([502, 503, 504]);
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
@@ -59,7 +59,7 @@ export class RickAndMortyClient {
       `/character/${ids.join(',')}`,
     );
 
-    // The upstream returns a bare object instead of a one-element array when a single id is requested.
+    // A single id comes back as a bare object, not a one-element array.
     return Array.isArray(data) ? data : [data];
   }
 

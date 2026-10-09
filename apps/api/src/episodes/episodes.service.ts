@@ -5,7 +5,7 @@ import { RickAndMortyClient } from '../rick-and-morty/rick-and-morty.client';
 import type { RawEpisode, RawPaginated } from '../rick-and-morty/rick-and-morty.types';
 import { characterIdsFrom, toCharacter, toEpisode, toPaginated } from './episodes.mapper';
 
-// Pinned to one locale so the order does not depend on the ICU data of whatever machine runs the API.
+// Pinned so the order does not depend on the ICU data of the machine running the API.
 const collator = new Intl.Collator('en');
 
 const emptyPage: RawPaginated<RawEpisode> = {
@@ -37,7 +37,7 @@ export class EpisodesService {
   }
 }
 
-// The upstream answers a search with no matches with a 404; for the first page that is simply an empty list.
+// The upstream answers a search without matches with a 404.
 function isSearchWithoutMatches(error: unknown, name: string | undefined, page: number) {
   return Boolean(name) && page === 1 && error instanceof NotFoundException;
 }

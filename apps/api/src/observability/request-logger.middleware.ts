@@ -24,7 +24,6 @@ export class RequestLoggerMiddleware implements NestMiddleware {
       const status = response.statusCode;
       const cache = response.getHeader('x-cache')?.toString();
 
-      // Metrics use the matched route pattern (/api/v1/episodes/:id) so their cardinality stays bounded.
       this.metrics.recordRequest({
         method: request.method,
         route: routeOf(request),

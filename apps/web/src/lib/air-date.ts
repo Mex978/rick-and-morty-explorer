@@ -1,7 +1,6 @@
 import type { useFormatter } from 'next-intl';
 
-// The API sends air dates as a plain calendar day ("December 2, 2013"). Pinning it to UTC midnight
-// keeps it on the same day whatever the time zone of the server or the browser rendering it.
+// Air dates are calendar days ("December 2, 2013"); UTC midnight keeps them on that day in any time zone.
 export function parseAirDate(airDate: string): Date | null {
   const local = new Date(airDate);
   if (Number.isNaN(local.getTime())) return null;

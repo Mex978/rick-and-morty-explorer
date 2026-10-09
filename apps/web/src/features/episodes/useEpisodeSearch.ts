@@ -12,7 +12,6 @@ export function useEpisodeSearch(query: string) {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  // Keep the uncontrolled input in sync with the url only when the user is not typing in it.
   useEffect(() => {
     if (input.current && document.activeElement !== input.current) input.current.value = query;
   }, [query]);

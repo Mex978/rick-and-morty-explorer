@@ -8,16 +8,14 @@ const config: NextConfig = {
   compiler: {
     styledComponents: true,
   },
-  // Avatars are small JPEGs already served by the upstream's CDN. Optimizing them would funnel every user's
-  // image traffic through this server's single IP, which the upstream rate-limits, and buys nothing on a 300px thumbnail.
+  // Avatars come straight from the upstream CDN; proxying them through one server IP trips its rate limit.
   images: {
     unoptimized: true,
   },
   logging: {
     fetches: { fullUrl: true },
   },
-  // Keeps visited pages in the client router cache for a minute, so going back to an episode is instant
-  // instead of showing its loading state again. The content never changes, so a minute of staleness costs nothing.
+  // Visited pages stay in the client router cache, so going back is instant; the content never changes.
   experimental: {
     staleTimes: { dynamic: 60 },
   },
