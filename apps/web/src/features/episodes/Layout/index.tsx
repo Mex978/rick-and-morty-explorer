@@ -7,6 +7,7 @@ import { SearchField } from '@/components/SearchField';
 import { Link } from '@/i18n/navigation';
 import { formatAirDate } from '@/lib/air-date';
 
+import { MAX_QUERY_LENGTH } from '../data';
 import type { EpisodesProps } from '../data';
 import { useEpisodeSearch } from '../useEpisodeSearch';
 import { Card, Code, Empty, Grid, Meta, Name, Results, Season, SeasonTitle, Title } from './styles';
@@ -25,6 +26,7 @@ export function EpisodesLayout({ query, seasons, page, pages }: EpisodesProps) {
         label={t('search.label')}
         placeholder={t('search.placeholder')}
         defaultValue={query}
+        maxLength={MAX_QUERY_LENGTH}
         onChange={(event) => (event.target.value ? search(event.target.value) : searchNow(''))}
         onSubmit={(event) => {
           event.preventDefault();

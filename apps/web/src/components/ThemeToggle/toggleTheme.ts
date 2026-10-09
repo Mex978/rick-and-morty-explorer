@@ -5,11 +5,7 @@ import { THEME_COOKIE } from '@/styles/theme';
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 const REVEAL_DURATION_MS = 500;
 
-export function useTheme() {
-  return { toggle };
-}
-
-function toggle(event: MouseEvent<HTMLElement>) {
+export function toggleTheme(event: MouseEvent<HTMLElement>) {
   const root = document.documentElement;
   const current =
     root.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -18,7 +14,8 @@ function toggle(event: MouseEvent<HTMLElement>) {
     root.dataset.theme = next;
   };
 
-  document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax`;
+  const secure = location.protocol === 'https:' ? '; secure' : '';
+  document.cookie = `${THEME_COOKIE}=${next}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; samesite=lax${secure}`;
 
   if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return apply();

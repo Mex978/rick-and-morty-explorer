@@ -37,15 +37,15 @@ describe('api client', () => {
     await expect(getEpisode(1)).resolves.toEqual({ id: 1, name: 'Pilot' });
   });
 
-  it.each([404, 400])('returns null when the api answers %s', async (status) => {
-    stubFetch(status, { message: 'nope' });
+  it('returns null when the api answers 404', async () => {
+    stubFetch(404, { message: 'nope' });
 
     await expect(getEpisode(999)).resolves.toBeNull();
   });
 
-  it('throws on any other failure', async () => {
-    stubFetch(502, { message: 'Bad Gateway' });
+  it.each([400, 502])('throws when the api answers %s', async (status) => {
+    stubFetch(status, { message: 'nope' });
 
-    await expect(getEpisode(1)).rejects.toThrow('API responded 502');
+    await expect(getEpisode(1)).rejects.toThrow(`API responded ${status}`);
   });
 });

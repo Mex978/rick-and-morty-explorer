@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { Button, Moon, Sun } from './styles';
-import { useTheme } from './useTheme';
+import { toggleTheme } from './toggleTheme';
 
 const icon = {
   width: 18,
@@ -16,10 +16,8 @@ const icon = {
 
 export function ThemeToggle() {
   const t = useTranslations('app');
-  const { toggle } = useTheme();
-
   return (
-    <Button type="button" onClick={toggle} aria-label={t('theme')} title={t('theme')}>
+    <Button type="button" onClick={toggleTheme} aria-label={t('theme')} title={t('theme')}>
       <Sun aria-hidden="true" {...icon}>
         <circle cx="12" cy="12" r="4" />
         <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
