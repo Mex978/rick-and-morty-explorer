@@ -244,6 +244,28 @@ describe('operational endpoints', () => {
   });
 });
 
+describe('metrics behind a token', () => {
+  let guarded: INestApplication;
+
+  beforeEach(async () => {
+    guarded = await createApp({ METRICS_TOKEN: 'secret' });
+  });
+
+  afterEach(() => guarded.close());
+
+  it('rejects scrapes without the token and accepts the bearer token', async () => {
+    await request(guarded.getHttpServer()).get('/metrics').expect(401);
+    await request(guarded.getHttpServer())
+      .get('/metrics')
+      .set('authorization', 'Bearer wrong')
+      .expect(401);
+    await request(guarded.getHttpServer())
+      .get('/metrics')
+      .set('authorization', 'Bearer secret')
+      .expect(200);
+  });
+});
+
 describe('rate limiting', () => {
   let limited: INestApplication;
 

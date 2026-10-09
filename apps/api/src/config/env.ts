@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+const optionalString = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => value || undefined);
+
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
   RICK_AND_MORTY_API_URL: z.url().default('https://rickandmortyapi.com/api'),
@@ -10,6 +16,8 @@ const envSchema = z.object({
   TRUST_PROXY_HOPS: z.coerce.number().int().nonnegative().default(0),
   // How long readiness reports down before the server stops, so a balancer can drain traffic.
   SHUTDOWN_DRAIN_MS: z.coerce.number().int().nonnegative().default(0),
+  // When set, /metrics requires it as a bearer token.
+  METRICS_TOKEN: optionalString,
 });
 
 export type Env = z.infer<typeof envSchema>;
