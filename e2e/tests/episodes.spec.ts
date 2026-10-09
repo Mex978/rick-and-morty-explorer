@@ -44,3 +44,16 @@ test('shows the translated not found page for an unknown episode', async ({ page
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Ir para os episódios' })).toBeVisible();
 });
+
+test('does not fetch episode details just by showing the list', async ({ page }) => {
+  const detailRequests: string[] = [];
+  page.on('request', (request) => {
+    if (/\/episodes\/\d+/.test(request.url())) detailRequests.push(request.url());
+  });
+
+  await page.goto('/pt-BR?page=2');
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(1500);
+
+  expect(detailRequests).toEqual([]);
+});
