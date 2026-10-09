@@ -1,6 +1,7 @@
 import type { Episode, EpisodeDetail, Paginated } from '@rma/types';
 
-const REVALIDATE_SECONDS = 3600;
+// Short on purpose: Next absorbs bursts for a page, the BFF holds the shared hour-long cache.
+const REVALIDATE_SECONDS = 60;
 
 export function getEpisodes(page: number, query = '') {
   const params = new URLSearchParams({ page: String(page) });

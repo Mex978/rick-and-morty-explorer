@@ -16,7 +16,7 @@ describe('api client', () => {
     await getEpisodes(2);
 
     expect(fetchMock).toHaveBeenCalledWith('http://api:3001/api/v1/episodes?page=2', {
-      next: { revalidate: 3600 },
+      next: { revalidate: 60 },
     });
   });
 
