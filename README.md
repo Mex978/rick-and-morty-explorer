@@ -119,12 +119,12 @@ docker compose up
 
 Every `up` rebuilds the two app images from the code on disk (`pull_policy: build` in the compose file), so there is no `--build` flag to remember after a change. The first build takes a few minutes; later ones reuse the cached layers and take seconds. When the logs settle, four services are up:
 
-| Service      | URL                   | What it is                                                                                          |
-| ------------ | --------------------- | --------------------------------------------------------------------------------------------------- |
-| `web`        | http://localhost:3000 | the Next.js app, production build, talking to `api` over the compose network                        |
-| `api`        | http://localhost:3001 | the NestJS BFF, production build, JSON logs, a five second drain on stop, `/metrics` behind a token |
-| `prometheus` | http://localhost:9090 | scrapes `api:3001/metrics` every 5 seconds with the token; under Status → Targets `api` is `UP`     |
-| `grafana`    | http://localhost:3002 | opens without login; the dashboard "Rick and Morty Explorer API" is provisioned under Dashboards    |
+| Service      | URL                   | What it is                                                                                                                |
+| ------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `web`        | http://localhost:3000 | the Next.js app, production build, talking to `api` over the compose network                                              |
+| `api`        | http://localhost:3001 | the NestJS BFF, production build, JSON logs, a five second drain on stop, `/metrics` behind a token                       |
+| `prometheus` | http://localhost:9090 | scrapes `api:3001/metrics` every 5 seconds with the token; under Status → Targets `api` is `UP`                           |
+| `grafana`    | http://localhost:3002 | opens without login straight on the dashboard "Rick and Morty Explorer API", with the menu trimmed to what the stack uses |
 
 To see the dashboard move, browse the app on port 3000 for a minute and come back to Grafana. Useful commands:
 
@@ -269,7 +269,7 @@ Everything runs locally; no external service is involved.
 
 Every response carries an `x-request-id` (reused when the caller sends one), and each request is logged with method, url, status, duration and cache result. With `NODE_ENV=production` the Nest logger writes JSON lines, ready for any log collector. Routes are logged by pattern (`/api/v1/episodes/:id`) so metric cardinality stays bounded whatever the ids or search terms.
 
-The Grafana dashboard provisioned by Docker Compose shows requests per second and p95 latency by route, responses by status, the BFF cache hit ratio with hits and misses over time, upstream latency by operation and process memory. The cache panels count the BFF's own cache only: the Next.js data cache sits in front of it, so revisiting a page in the browser usually never reaches the API. To see hits, call the API directly twice, for example `curl -D - -o /dev/null http://localhost:3001/api/v1/episodes/1`, and watch `X-Cache` go from `MISS` to `HIT`. Traces were left out on purpose: they need a backend to be useful, and the request id already correlates a response with its log line.
+The Grafana dashboard provisioned by Docker Compose shows requests per second and p95 latency by route, responses by status, the BFF cache hit ratio with hits and misses over time, upstream latency by operation and process memory. The cache panels count the BFF's own cache only, and that is why the hit ratio sits at 0% while you browse: the Next.js data cache sits in front of it, so revisiting or refreshing a page in the browser is answered by Next and never reaches the API. The BFF cache works for whatever calls the API directly, such as a CDN, another consumer or a second Next.js instance with a cold cache. To see hits, call the API directly twice, for example `curl -D - -o /dev/null http://localhost:3001/api/v1/episodes/1`, and watch `X-Cache` go from `MISS` to `HIT`. Traces and a log backend were left out on purpose: both need more infrastructure than the application itself to be useful, the request id already correlates a response with its log line, and `docker compose logs -f api` shows those lines as JSON.
 
 ## Decisions
 

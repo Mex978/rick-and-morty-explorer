@@ -93,7 +93,8 @@
           "expr": "(sum(rate(cache_events_total{result=\"hit\"}[5m])) or vector(0)) / clamp_min(sum(rate(cache_events_total[5m])) or vector(0), 1e-9)",
           "legendFormat": "hit ratio"
         }
-      ]
+      ],
+      "description": "Counts the BFF's own cache only. The Next.js data cache sits in front of it, so browsing and refreshing the app rarely reaches the API and this stays at 0%. Call the API directly twice, for example curl http://localhost:3001/api/v1/episodes/1, and watch it move."
     },
     {
       "id": 7,
@@ -122,7 +123,8 @@
           "expr": "sum by (result) (increase(cache_events_total[1m]))",
           "legendFormat": "{{result}}"
         }
-      ]
+      ],
+      "description": "A miss is the first request for a url within the TTL; a hit is any later one that reached the BFF. Requests answered by the Next.js data cache never appear here."
     },
     {
       "id": 4,

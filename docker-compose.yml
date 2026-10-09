@@ -43,6 +43,15 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: 'true'
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       GF_AUTH_DISABLE_LOGIN_FORM: 'true'
+      # Open straight on the dashboard and hide what this stack does not use.
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/api.json
+      GF_PLUGINS_PREINSTALL_DISABLED: 'true'
+      GF_UNIFIED_ALERTING_ENABLED: 'false'
+      GF_EXPLORE_ENABLED: 'false'
+      GF_NEWS_NEWS_FEED_ENABLED: 'false'
+      GF_HELP_ENABLED: 'false'
+      GF_PROFILE_ENABLED: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
     volumes:
       - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
