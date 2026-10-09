@@ -42,6 +42,7 @@
     "location": "Last known location"
   },
   "pagination": {
+    "label": "Pagination",
     "previous": "Previous",
     "next": "Next",
     "page": "Page {current} of {total}"

@@ -1,29 +1,31 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+
+import { usePathname } from '@/i18n/navigation';
 
 import { Nav, PageButton, PageLink, Status } from './styles';
 
-export interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  prevHref: string | null;
-  nextHref: string | null;
-}
-
-export function Pagination({ currentPage, totalPages, prevHref, nextHref }: PaginationProps) {
+export function Pagination({ page, pages }: { page: number; pages: number }) {
   const t = useTranslations('pagination');
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const href = (target: number) => ({
+    pathname,
+    query: { ...Object.fromEntries(searchParams), page: target },
+  });
 
   return (
-    <Nav aria-label={t('page', { current: currentPage, total: totalPages })}>
-      {prevHref ? (
-        <PageLink href={prevHref}>{t('previous')}</PageLink>
+    <Nav aria-label={t('label')}>
+      {page > 1 ? (
+        <PageLink href={href(page - 1)}>{t('previous')}</PageLink>
       ) : (
         <PageButton disabled>{t('previous')}</PageButton>
       )}
-      <Status>{t('page', { current: currentPage, total: totalPages })}</Status>
-      {nextHref ? (
-        <PageLink href={nextHref}>{t('next')}</PageLink>
+      <Status>{t('page', { current: page, total: pages })}</Status>
+      {page < pages ? (
+        <PageLink href={href(page + 1)}>{t('next')}</PageLink>
       ) : (
         <PageButton disabled>{t('next')}</PageButton>
       )}

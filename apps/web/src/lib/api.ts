@@ -1,31 +1,26 @@
 import type { Episode, EpisodeDetail, Paginated } from '@rma/types';
 
-export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    path: string,
-  ) {
-    super(`Request to ${path} failed with status ${status}`);
-    this.name = 'ApiError';
-  }
-}
+const REVALIDATE_SECONDS = 3600;
 
-async function get<T>(path: string): Promise<T> {
-  const baseUrl = process.env.API_URL ?? 'http://localhost:3001';
-  const response = await fetch(`${baseUrl}/api/v1${path}`, { next: { revalidate: 3600 } });
-
-  if (!response.ok) throw new ApiError(response.status, path);
-
-  return response.json() as Promise<T>;
-}
-
-export function getEpisodes(page: number, query = ''): Promise<Paginated<Episode>> {
+export function getEpisodes(page: number, query = '') {
   const params = new URLSearchParams({ page: String(page) });
   if (query) params.set('name', query);
 
-  return get(`/episodes?${params}`);
+  return get<Paginated<Episode>>(`/episodes?${params}`);
 }
 
-export function getEpisode(id: number): Promise<EpisodeDetail> {
-  return get(`/episodes/${id}`);
+export function getEpisode(id: number) {
+  return get<EpisodeDetail>(`/episodes/${id}`);
+}
+
+async function get<T>(path: string): Promise<T | null> {
+  const baseUrl = process.env.API_URL ?? 'http://localhost:3001';
+  const response = await fetch(`${baseUrl}/api/v1${path}`, {
+    next: { revalidate: REVALIDATE_SECONDS },
+  });
+
+  if (response.status === 404 || response.status === 400) return null;
+  if (!response.ok) throw new Error(`API responded ${response.status} to ${path}`);
+
+  return response.json();
 }

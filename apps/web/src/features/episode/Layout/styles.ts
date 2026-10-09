@@ -1,5 +1,9 @@
 import styled from 'styled-components';
 
+import type { Theme } from '@/styles/theme';
+
+export type CharacterStatus = keyof Theme['colors']['status'];
+
 export const BackLink = styled.span`
   display: block;
   margin-bottom: 16px;
@@ -99,7 +103,7 @@ export const Name = styled.strong`
   line-height: 1.3;
 `;
 
-export const Badge = styled.span<{ $status: 'alive' | 'dead' | 'unknown' }>`
+export const Badge = styled.span<{ $status: CharacterStatus }>`
   display: inline-block;
   margin-bottom: 10px;
   padding: 2px 8px;
