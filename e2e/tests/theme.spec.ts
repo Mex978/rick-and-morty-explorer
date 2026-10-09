@@ -1,4 +1,4 @@
-import { expect, test } from './test';
+import { expect, test } from '@playwright/test';
 
 test('switches to the dark theme and keeps it after a reload', async ({ page }) => {
   await page.goto('/pt-BR');
