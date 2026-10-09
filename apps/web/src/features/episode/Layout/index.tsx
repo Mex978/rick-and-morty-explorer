@@ -11,6 +11,7 @@ import { formatAirDate } from '@/lib/air-date';
 
 import type { EpisodeProps } from '../data';
 import {
+  AvatarFallback,
   BackLink,
   Badge,
   Card,
@@ -24,6 +25,10 @@ import {
   SectionTitle,
   Title,
 } from './styles';
+
+const AVATAR_RETRIES = 2;
+// The upstream answers bursts with 429 and a retry-after of about ten seconds, so retries wait long enough to matter.
+const AVATAR_RETRY_DELAYS_MS = [4000, 8000];
 
 export function EpisodeLayout({ episode }: EpisodeProps) {
   const t = useTranslations('episode');
@@ -73,13 +78,7 @@ function CharacterCard({ character, priority }: { character: Character; priority
 
   return (
     <Card>
-      <Image
-        src={character.image}
-        alt={character.name}
-        width={300}
-        height={300}
-        priority={priority}
-      />
+      <CharacterAvatar character={character} priority={priority} />
       <CardBody>
         <Name>{character.name}</Name>
         <Badge $status={status}>{t(`status.${status}`)}</Badge>
@@ -93,6 +92,30 @@ function CharacterCard({ character, priority }: { character: Character; priority
         </Detail>
       </CardBody>
     </Card>
+  );
+}
+
+// A page with 60 avatars is a burst for the upstream CDN. A failed image gets delayed retries (a new query
+// string forces the browser to fetch again) and then a placeholder instead of a broken icon.
+function CharacterAvatar({ character, priority }: { character: Character; priority: boolean }) {
+  const [attempt, setAttempt] = useState(0);
+  const [failed, setFailed] = useState(false);
+
+  if (failed)
+    return <AvatarFallback aria-label={character.name}>{character.name.charAt(0)}</AvatarFallback>;
+
+  return (
+    <Image
+      src={attempt === 0 ? character.image : `${character.image}?retry=${attempt}`}
+      alt={character.name}
+      width={300}
+      height={300}
+      priority={priority}
+      onError={() => {
+        if (attempt >= AVATAR_RETRIES) return setFailed(true);
+        setTimeout(() => setAttempt(attempt + 1), AVATAR_RETRY_DELAYS_MS[attempt]);
+      }}
+    />
   );
 }
 

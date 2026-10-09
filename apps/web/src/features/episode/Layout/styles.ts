@@ -78,6 +78,16 @@ export const Card = styled.li`
   }
 `;
 
+export const AvatarFallback = styled.div`
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  background: ${({ theme }) => theme.colors.border};
+  color: ${({ theme }) => theme.colors.muted};
+  font-size: 3rem;
+  font-weight: 700;
+`;
+
 export const CardBody = styled.div`
   padding: 12px;
 `;
